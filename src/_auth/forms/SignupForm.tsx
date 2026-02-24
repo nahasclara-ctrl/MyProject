@@ -42,10 +42,10 @@ const SignupForm = () => {
   // React Query Mutations
   // ----------------------
 
-  const { mutateAsync: createUserAccount, isLoading: isCreatingUser } =
+  const { mutateAsync: createUserAccount, isPending: isCreatingUser } =
     useCreateUserAccount();
 
-  const { mutateAsync: signInAccount, isLoading: isSigningIn } =
+  const { mutateAsync: signInAccount, isPending: isSigningIn } =
     useSignInAccount();
 
   // ----------------------
@@ -117,7 +117,7 @@ const SignupForm = () => {
 
   return (
     <Form {...form}>
-      <div className="sm:w-420 flex-center flex-col">
+      <div className="sm:max-w-[420px] w-full> ">
         <img
           src="/assets/images/log0.png"
           alt="Logo"
