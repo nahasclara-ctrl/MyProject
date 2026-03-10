@@ -1,12 +1,12 @@
 import {
   useMutation,
   useQuery,
-  useQueryClient,
   useInfiniteQuery,
+  useQueryClient,
 } from "@tanstack/react-query";
 
-import { createUserAccount, signInAccount, signOutAccount } from "../appwrite/api";
-import type { INewUser } from "@/types";
+import { createPost, createUserAccount, signInAccount, signOutAccount } from "../appwrite/api";
+import type { INewPost, INewUser } from "@/types";
 
 // ----------------------------
 // Create Account Mutation
@@ -27,8 +27,28 @@ export const useSignInAccount = () => {
   });
 };
 
+// ----------------------------
+// Sign Out Mutation
+// ----------------------------
 export const useSignOutAccount = () => {
   return useMutation({
-    mutationFn: signOutAccount(),
+    mutationFn: () => signOutAccount(),
+  });
+};
+
+// ----------------------------
+// Create Post Mutation
+// ----------------------------
+export const useCreatePost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (post: INewPost) => createPost(post), // ← comma added
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["getRecentPosts"], // should be array
+      });
+    },
   });
 };

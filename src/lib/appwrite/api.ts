@@ -1,7 +1,7 @@
-import { ID } from "appwrite";
-import type { INewUser } from "@/types";
-import { account, databases, avatars, appwriteConfig } from "./config";
-import { Query } from "appwrite";
+import { ImageGravity } from "appwrite";
+import { ID, Query, Databases, Storage, Account, Avatars } from "appwrite";
+import type { INewPost, INewUser } from "@/types";
+import { appwriteConfig, account, databases, storage, avatars } from "./config";
 
 // ----------------------------
 // Create User Account
@@ -17,11 +17,7 @@ export async function createUserAccount(user: INewUser) {
 
     if (!newAccount) throw new Error("Account creation failed");
 
-    const avatarUrl = avatars
-      .getInitials({
-        name: user.name,
-      })
-      .toString();
+    const avatarUrl = avatars.getInitials({ name: user.name }).toString();
 
     await saveUserToDB({
       accountId: newAccount.$id,
@@ -33,8 +29,8 @@ export async function createUserAccount(user: INewUser) {
 
     return newAccount;
   } catch (error) {
-    console.log(error);
-    throw error;
+    console.error(error);
+    return null;
   }
 }
 
@@ -49,37 +45,32 @@ export async function saveUserToDB(user: {
   username?: string;
 }) {
   try {
-    const newUser = await databases.createDocument({
-      databaseId: appwriteConfig.databaseId,
-      collectionId: appwriteConfig.usersCollectionId,
-      documentId: ID.unique(),
-      data: user,
-    });
-
+    const newUser = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.usersCollectionId,
+      ID.unique(),
+      user
+    );
     return newUser;
   } catch (error) {
-    console.log(error);
-    throw error;
+    console.error(error);
+    return null;
   }
 }
 
 // ----------------------------
 // Sign In
 // ----------------------------
-export async function signInAccount(user: {
-  email: string;
-  password: string;
-}) {
+export async function signInAccount(user: { email: string; password: string }) {
   try {
     const session = await account.createEmailPasswordSession({
       email: user.email,
       password: user.password,
     });
-
     return session;
   } catch (error) {
-    console.log(error);
-    throw error;
+    console.error(error);
+    return null;
   }
 }
 
@@ -89,17 +80,21 @@ export async function signInAccount(user: {
 export async function getCurrentUser() {
   try {
     const currentAccount = await account.get();
-    if(!currentAccount) throw Error;
+    if (!currentAccount) throw new Error("No account found");
 
-    const currentUser= await  databases.listDocuments(
+    const currentUser = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.usersCollectionId,
-      [Query.equal('accountId',currentAccount.$id)]
-    )
-     if(!currentUser) throw Error;
-     return currentUser.documents[0];
+      [Query.equal("accountId", currentAccount.$id)]
+    );
+
+    if (!currentUser || currentUser.documents.length === 0)
+      throw new Error("User not found");
+
+    return currentUser.documents[0];
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    return null;
   }
 }
 
@@ -111,6 +106,112 @@ export async function signOutAccount() {
     const session = await account.deleteSession("current");
     return session;
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    return null;
+  }
+}
+
+// ----------------------------
+// Upload File
+// ----------------------------
+export async function uploadFile(file: File) {
+  try {
+    const uploadedFile = await storage.createFile(
+      appwriteConfig.storageId,
+      ID.unique(),
+      file
+    );
+    return uploadedFile;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+// ----------------------------
+// Get File Preview
+// ----------------------------
+export async function getFilePreview(
+  fileId: string,
+  width = 2000,
+  height = 2000,
+  gravity:ImageGravity=ImageGravity.Center,
+  quality = 100
+) {
+  try {
+    const fileUrl = storage.getFilePreview(
+      appwriteConfig.storageId,
+      fileId,
+      width,
+      height,
+      gravity,
+      quality
+    );
+    return fileUrl;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+// ----------------------------
+// Delete File
+// ----------------------------
+export async function deleteFile(fileId: string) {
+  try {
+    await storage.deleteFile(appwriteConfig.storageId, fileId);
+    return { status: "ok" };
+  } catch (error) {
+    console.error(error);
+    return { status: "error" };
+  }
+}
+
+// ----------------------------
+// Create Post
+// ----------------------------
+export async function createPost(post: INewPost) {
+  try {
+    if (!post.file || post.file.length === 0)
+      throw new Error("No file provided");
+
+    // 1️⃣ Upload the file
+    const uploaded = await uploadFile(post.file[0]);
+    if (!uploaded) throw new Error("File upload failed");
+
+    // 2️⃣ Get file preview URL
+    const fileUrl = await getFilePreview(uploaded.$id);
+    if (!fileUrl) {
+      await deleteFile(uploaded.$id);
+      throw new Error("Failed to get file preview");
+    }
+
+    // 3️⃣ Process tags
+    const tags = post.tags?.replace(/\s/g, "").split(",") || [];
+
+    // 4️⃣ Create post document
+    const newPost = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      ID.unique(),
+      {
+        creator: post.userId,
+        caption: post.caption,
+        imageUrl: fileUrl,
+        imageId: uploaded.$id,
+        location: post.location,
+        tags: tags,
+      }
+    );
+
+    if (!newPost) {
+      await deleteFile(uploaded.$id);
+      throw new Error("Post creation failed");
+    }
+
+    return newPost;
+  } catch (error) {
+    console.error(error);
+    return null;
   }
 }
