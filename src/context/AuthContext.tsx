@@ -31,6 +31,7 @@ const AuthProvider  = ({children}:{children:React.ReactNode}) => {
     const navigate=useNavigate();
 
     const checkAuthUser=async ()=>{
+      setIsLoading(true); //i add this to set loading state to true when we start checking for the user, this will help us to show a loading state in the UI while we are checking for the user
         try{
             const currentAccount= await getCurrentUser();
 
@@ -61,11 +62,12 @@ const AuthProvider  = ({children}:{children:React.ReactNode}) => {
 
    useEffect(() => {
   const checkUser = async () => {
-    if (
-      localStorage.getItem("cookieFallback") === "[]" ||
-      localStorage.getItem("cookieFallback") === null
-    ) {
-      navigate("/sign-in");
+    const cookiefallback = localStorage.getItem("cookieFallback");//i add this because appwrite session cookie is httpOnly and can't be accessed by js, so i set a fallback in localStorage to check if the user is logged in or not
+
+     if (cookiefallback === "[]" || cookiefallback === null) {
+       setIsLoading(false); //i add this 
+      return; // just return, don't navigate
+      //i remove the navigate (signin) because i want to check the user first and then navigate if the user is not authenticated, this is to prevent the navigate from being called before the checkAuthUser function is called and setting the isAuthenticated state to true
     }
 
     await checkAuthUser();

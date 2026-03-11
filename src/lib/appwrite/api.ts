@@ -16,10 +16,13 @@ export async function createUserAccount(user: INewUser) {
     });
 
     if (!newAccount) throw new Error("Account creation failed");
-
+    await account.createEmailPasswordSession({
+      email: user.email,
+      password: user.password,  
+    })
     const avatarUrl = avatars.getInitials({ name: user.name }).toString();
-
-    await saveUserToDB({
+    
+     await saveUserToDB({ //save the result
       accountId: newAccount.$id,
       email: newAccount.email,
       name: newAccount.name,
@@ -29,8 +32,7 @@ export async function createUserAccount(user: INewUser) {
 
     return newAccount;
   } catch (error) {
-    console.error(error);
-    return null;
+  return null;
   }
 }
 
@@ -45,6 +47,9 @@ export async function saveUserToDB(user: {
   username?: string;
 }) {
   try {
+    //console.log("DB ID:", appwriteConfig.databaseId);
+    //console.log("Collection ID:", appwriteConfig.usersCollectionId);
+    //console.log("User Data:", user);
     const newUser = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.usersCollectionId,
@@ -53,8 +58,9 @@ export async function saveUserToDB(user: {
     );
     return newUser;
   } catch (error) {
-    console.error(error);
-    return null;
+    console.error("saveUserToDb Failed:", error);
+    throw error;
+    //hon badal return null hattayna ha la nshuf shu lmshkle le ma aam taaml run 
   }
 }
 
@@ -63,17 +69,20 @@ export async function saveUserToDB(user: {
 // ----------------------------
 export async function signInAccount(user: { email: string; password: string }) {
   try {
-    const session = await account.createEmailPasswordSession({
-      email: user.email,
-      password: user.password,
-    });
-    return session;
+    try{
+    await account.deleteSession("current");// // Clear existing session before signing in
+  } catch (e) {
+  }
+  const session = await account.createEmailPasswordSession({
+    email: user.email,
+    password: user.password,
+  });
+  return session;
   } catch (error) {
     console.error(error);
     return null;
   }
 }
-
 // ----------------------------
 // Get Current User
 // ----------------------------

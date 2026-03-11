@@ -71,6 +71,7 @@ const SigninForm = () => {
         email: values.email,
         password: values.password,
       });
+      console.log("1.SESSION:", session);//add it to see where the problem
        
       if (!session) {
         return toast({
@@ -78,25 +79,22 @@ const SigninForm = () => {
         });
       }
       const isLoggedIn =await checkAuthUser();
-     
+      console.log("2. IS LOGGED IN:", isLoggedIn);  // ← add here
+      console.log("3. COOKIE:", localStorage.getItem("cookieFallback"));  // ← add here
+
 
       if(isLoggedIn){
         form.reset();
-
+        toast({ title: "Login successful!" });
         navigate("/")
       }else{
         toast({ title:'Login failed. Please try again.'})
 
       }
-
-      toast({
-        title: "Login successful!",
-      });
-
       
     
     } catch (error) {
-      console.log(error);
+      console.log("Error:",error);
     }
   }
 

@@ -4,9 +4,9 @@ export const appwriteConfig = {
   endpoint: import.meta.env.VITE_APPWRITE_URL,
   projectId: import.meta.env.VITE_APPWRITE_PROJECT_ID,
   databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
-  usersCollectionId: import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID,
-  postCollectionId: import.meta.env.NEXT_PUBLIC_APPWRITE_POST_COLLECTION_ID, 
-  storageId: import.meta.env.NEXT_PUBLIC_APPWRITE_STORAGE_ID, 
+  usersCollectionId: import.meta.env.VITE_APPWRITE_users_COLLECTION_ID,
+  postCollectionId: import.meta.env.VITE_APPWRITE_posts_COLLECTION_ID, 
+  storageId: import.meta.env.VITE_APPWRITE_STORAGE_ID, //zabatet ho mn public next la vute 
 };
 
 const client = new Client();
