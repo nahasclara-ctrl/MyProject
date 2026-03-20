@@ -140,7 +140,7 @@ export async function uploadFile(file: File) {
 // ----------------------------
 // Get File Preview
 // ----------------------------
-export async function getFilePreview(
+export function getFilePreview(
   fileId: string,
   width = 2000,
   height = 2000,
@@ -222,5 +222,25 @@ export async function createPost(post: INewPost) {
   } catch (error) {
     console.error(error);
     return null;
+  }
+}
+
+export async function getRecentPosts() {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      [
+        Query.orderDesc("$createdAt"),
+        Query.limit(20),
+      ]
+    );
+
+    if (!posts) throw new Error("No posts found");
+
+    return posts;
+  } catch (error) {
+    console.error("Error fetching recent posts:", error);
+    throw error;
   }
 }

@@ -7,6 +7,8 @@ import {
 
 import { createPost, createUserAccount, signInAccount, signOutAccount } from "../appwrite/api";
 import type { INewPost, INewUser } from "@/types";
+import { getRecentPosts } from "@/lib/appwrite/api";
+import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
 
 // ----------------------------
 // Create Account Mutation
@@ -48,7 +50,16 @@ export const useCreatePost = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["getRecentPosts"], // should be array
+      
       });
     },
   });
+}; 
+
+export const useGetRecentPosts = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
+    queryFn: getRecentPosts,
+  });
 };
+ 
