@@ -1,3 +1,5 @@
+import type { Models } from "node_modules/appwrite/types/client";
+
 export type IContextType={
   user:IUser;
   isLoading:boolean;
@@ -48,11 +50,28 @@ export type IUser = {
   email: string;
   imageUrl: string;
   bio: string;
+  save: SavedPost[];
 };
-
+export type SavedPost= Models.Document & {
+  post: Post;
+}
 export type INewUser = {
   name: string;
   email: string;
   username: string;
   password: string;
 };
+//post extanding appwrite document 
+export type Post = Models.Document & {
+  creator : {
+    $id:string;
+    name:string;
+    imageUrl:string;
+  };
+  caption:string;
+  location: string;
+  tags: string[];
+  imageUrl:string;
+  likes: string[];// i add this 
+  };
+

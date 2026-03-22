@@ -14,11 +14,11 @@ const RootLayout = () => {
     return <Navigate to="/sign-in" />;
   }
   return (
-    <div className="w-full md:flex">
+    <div className="w-full md:flex h-screen">
       <Topbar/>
       <LeftSidebar/>
 
-      <section className="flex flex-1 h-full">
+      <section className="flex flex-1 h-full overflow-y-auto custom-scrollbar">
         <Outlet/>
 
 

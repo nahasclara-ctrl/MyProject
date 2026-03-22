@@ -3,9 +3,9 @@ import { ID, Query, Databases, Storage, Account, Avatars } from "appwrite";
 import type { INewPost, INewUser } from "@/types";
 import { appwriteConfig, account, databases, storage, avatars } from "./config";
 
-// ----------------------------
+
 // Create User Account
-// ----------------------------
+
 export async function createUserAccount(user: INewUser) {
   try {
     const newAccount = await account.create({
@@ -242,5 +242,69 @@ export async function getRecentPosts() {
   } catch (error) {
     console.error("Error fetching recent posts:", error);
     throw error;
+  }
+}
+export async function likePost(postId: string, likesArray: string[]){
+  try {
+    const updatedPost  = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      postId,
+      {
+        likes: likesArray,
+      }
+    )
+    if(!updatedPost) throw new Error("Failed to like post");
+    return updatedPost;
+
+  }catch(error){
+    console.error("Error liking post:", error);
+  }
+}
+export async function savePost(postId: string,userId:string){
+  try {
+    const updatedPost  = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.savesCollectionId,
+      ID.unique(),
+    {
+      user: userId,
+      post:postId,
+    }
+  );
+  if(!updatedPost) throw new Error("Failed to save Post")
+   return updatedPost;
+
+  }catch(error){
+    console.error("Error saving post:", error);
+  }
+}
+export async function deleteSavedPost(savedRecordId: string,){
+  try {
+    const statusCode  = await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.savesCollectionId,
+      savedRecordId,
+    )
+    if(!statusCode) throw new Error;
+    return {status: "ok"};
+
+  }catch(error){
+    console.error("Error unsaving post:", error);
+  }
+}
+export function checkIsLiked(likeList: string[], userId: string){
+  return likeList.includes(userId);
+}
+
+export async function getPostById(postId: string){
+  try{
+    const post = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      postId
+    )
+    return post;
+  }catch(error){
   }
 }

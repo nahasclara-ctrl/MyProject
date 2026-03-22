@@ -1,12 +1,14 @@
-import { Models } from "appwrite";
+import {type Post} from "@/types";
 import { Link } from "react-router-dom";
-
+import { formatDate } from "@/lib/utils";
+import { useUserContext } from "@/context/AuthContext";
+import PostStats from "./PostStats";
 type PostCardProps = {
-  post: Models.Document;
+  post: Post;
 };
 
 const PostCard = ({ post }: PostCardProps) => {
-   const{ user} = useUserContext();
+   const{user} = useUserContext();
     console.log(post);
 
   return (
@@ -39,7 +41,7 @@ const PostCard = ({ post }: PostCardProps) => {
           </div>
         </div>
         <Link to={`/update-post/${post.$id}`}>
-           className={'${user.id !== post.creator.$id && hidden'}
+           className={user.id !== post.creator.$id ? "hidden":""}
   <img
     src="/assets/icons/edit.svg"
     alt="edit"
@@ -66,6 +68,7 @@ const PostCard = ({ post }: PostCardProps) => {
   alt="post image"
 />
 </Link>
+  <PostStats post={post} userId={user.id} />
     </div>
     
   );

@@ -6,6 +6,7 @@ export const appwriteConfig = {
   databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
   usersCollectionId: import.meta.env.VITE_APPWRITE_users_COLLECTION_ID,
   postCollectionId: import.meta.env.VITE_APPWRITE_posts_COLLECTION_ID, 
+  savesCollectionId:import.meta.env.VITE_APPERITE_saves_COLLECTION,
   storageId: import.meta.env.VITE_APPWRITE_STORAGE_ID, //zabatet ho mn public next la vute 
 };
 
