@@ -6,15 +6,15 @@ export const appwriteConfig = {
   databaseId: import.meta.env.VITE_APPWRITE_DATABASE_ID,
   usersCollectionId: import.meta.env.VITE_APPWRITE_users_COLLECTION_ID,
   postCollectionId: import.meta.env.VITE_APPWRITE_posts_COLLECTION_ID, 
-  savesCollectionId:import.meta.env.VITE_APPERITE_saves_COLLECTION,
+  savesCollectionId:import.meta.env.VITE_APPWRITE_saves_COLLECTION_ID,
   storageId: import.meta.env.VITE_APPWRITE_STORAGE_ID, //zabatet ho mn public next la vute 
 };
 
 const client = new Client();
 
 client
-  .setEndpoint("https://tor.cloud.appwrite.io/v1")
-  .setProject("6991daa700157fdebb3c");
+  .setEndpoint(appwriteConfig.endpoint)
+  .setProject(appwriteConfig.projectId);
 
 export const account = new Account(client);
 export const databases = new Databases(client);
