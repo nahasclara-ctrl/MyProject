@@ -1,6 +1,6 @@
 import { ImageGravity } from "appwrite";
 import { ID, Query, Databases, Storage, Account, Avatars } from "appwrite";
-import type { INewPost, INewUser } from "@/types";
+import type { INewPost, INewUser, IUpdatePost } from "@/types";
 import { appwriteConfig, account, databases, storage, avatars } from "./config";
 
 
@@ -306,5 +306,73 @@ export async function getPostById(postId: string){
     )
     return post;
   }catch(error){
+  }
+}
+export async function updatePost(post:IUpdatePost) {
+  const hasFileToUpdate=post.file.length >0;
+  try {
+    let image={
+      imageUrl:post.imageUrl,
+      imageId:post.imageId,
+    }
+    if(hasFileToUpdate){
+      // 1️⃣ Upload the file
+      const uploaded = await uploadFile(post.file[0]);
+    if (!uploaded) throw new Error("File upload failed");
+
+    // 2️⃣ Get file preview URL
+    const fileUrl = await getFilePreview(uploaded.$id);
+    if (!fileUrl) {
+      await deleteFile(uploaded.$id);
+      throw new Error("Failed to get file preview");
+    }
+    if (!post.file || post.file.length === 0)
+      throw new Error("No file provided");
+    
+
+    image={ ...image,imageUrl: fileUrl,imageId:uploaded.$id}
+
+  }  
+  
+    // 3️⃣ Process tags
+    const tags = post.tags?.replace(/\s/g, "").split(",") || [];
+
+    // 4️⃣ Create post document
+    const updatedPost = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      post.postId,
+      {
+        caption: post.caption,
+        imageUrl: image.imageUrl,
+        imageId: image.imageId,
+        location: post.location,
+        tags: tags,
+      }
+    );
+
+    if (!updatedPost) {
+      await deleteFile(post.imageId);
+      throw new Error("Post creation failed");
+    }
+
+    return updatedPost;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+export async function deletePost(postId:string, imageId:string){
+  if(!postId || !imageId) throw Error;
+
+  try{
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      postId
+    )
+    return { status:'ok'}
+  }catch(error){
+    console.log(error)
   }
 }

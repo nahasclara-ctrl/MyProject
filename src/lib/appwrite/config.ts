@@ -13,8 +13,8 @@ export const appwriteConfig = {
 const client = new Client();
 
 client
-  .setEndpoint(appwriteConfig.endpoint)
-  .setProject(appwriteConfig.projectId);
+  .setEndpoint("https://tor.cloud.appwrite.io/v1")
+  .setProject("6991daa700157fdebb3c");
 
 export const account = new Account(client);
 export const databases = new Databases(client);
