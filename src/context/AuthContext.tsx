@@ -10,6 +10,7 @@ export const INITIAL_USER = {
    email:'',
    imageUrl:'',
    bio:'',
+   save:[], //i add the save one 
 };
 const INITIAL_STATE= {
   user:INITIAL_USER,
@@ -45,7 +46,7 @@ const AuthProvider  = ({children}:{children:React.ReactNode}) => {
                 bio:currentAccount.bio,
                save: currentAccount.save, //adding this
             })
-          }
+          
             setIsAuthenticated(true);
 
             return true;
@@ -71,7 +72,7 @@ const AuthProvider  = ({children}:{children:React.ReactNode}) => {
       //i remove the navigate (signin) because i want to check the user first and then navigate if the user is not authenticated, this is to prevent the navigate from being called before the checkAuthUser function is called and setting the isAuthenticated state to true
     }
 
-    await checkAuthUser();
+    await checkAuthUser();//calling checkauthuser not checkuser 
   };
 
   checkUser();
