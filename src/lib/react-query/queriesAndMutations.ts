@@ -5,11 +5,11 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import { createPost, createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getInfinitePosts, getPostById, likePost, savePost, searchPosts, signInAccount, signOutAccount, updatePost } from "../appwrite/api";
+import { createPost, createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getInfinitePosts, getPostById, getUserById, getUserPosts, getUsers, likePost, savePost, searchPosts, signInAccount, signOutAccount, updatePost } from "../appwrite/api";
 import type { INewPost, INewUser, IUpdatePost } from "@/types";
 import { getRecentPosts } from "@/lib/appwrite/api";
 import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
-import { Save } from "lucide-react";
+
 
 // ----------------------------
 // Create Account Mutation
@@ -191,3 +191,27 @@ export const useSearchPosts = (searchTerm: string) => {
     enabled: !!searchTerm,
   });
 };
+//i add this for the profile 
+export const useGetUserById = (userId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_USER_BY_ID, userId],
+    queryFn: () => getUserById(userId),
+    enabled: !!userId,
+  });
+};
+ 
+export const useGetUserPosts = (userId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_USER_POSTS, userId],
+    queryFn: () => getUserPosts(userId),
+    enabled: !!userId,
+  });
+};
+ 
+export const useGetUsers = (limit?: number) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_USERS],
+    queryFn: () => getUsers(limit),
+  });
+};
+ 

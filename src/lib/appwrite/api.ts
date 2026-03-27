@@ -421,3 +421,51 @@ export async function searchPosts(searchTerm: string) {
     throw error;
   }
 }
+
+export async function getUserById(userId: string) {
+  try {
+    const user = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.usersCollectionId,
+      userId
+    );
+    return user;
+  } catch (error) {
+    console.error("getUserById failed:", error);
+    return null;
+  }
+}
+
+export async function getUserPosts(userId: string) {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      [
+        Query.equal("creator", userId),
+        Query.orderDesc("$createdAt"),
+      ]
+    );
+    return posts;
+  } catch (error) {
+    console.error("getUserPosts failed:", error);
+    return null;
+  }
+}
+
+export async function getUsers(limit?: number) {
+  try {
+    const queries: any[] = [Query.orderDesc("$createdAt")];
+    if (limit) queries.push(Query.limit(limit));
+
+    const users = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.usersCollectionId,
+      queries
+    );
+    return users;
+  } catch (error) {
+    console.error("getUsers failed:", error);
+    return null;
+  }
+}
