@@ -1,11 +1,12 @@
 import React from "react";
 import { useUserContext } from "@/context/AuthContext";
-import { Models } from "appwrite";
+
 import { Link } from "react-router-dom";
+import type{Post} from"@/types";
 import PostStats from "./PostStats";
 
 type GridPostListProps = {
-  posts: Models.Document[];
+  posts: Post[];
   showUser?: boolean;
   showStats?: boolean;
 };

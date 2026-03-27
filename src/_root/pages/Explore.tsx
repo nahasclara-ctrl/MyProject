@@ -1,5 +1,10 @@
 import React, { useState } from 'react'
 import { Input } from "@/components/ui/input";
+import { useGetPosts, useSearchPosts } from '@/lib/react-query/queriesAndMutations';
+import useDebounce from '@/hooks/useDebounce';
+import Loader from '@/components/shared/Loader';
+import SearchResults from '@/components/shared/SearchResults';
+import GridPostList from '@/components/shared/GridPostList';
 const Explore = () => {
  const [searchValue, setSearchValue] = useState("");
  const debouncedValue = useDebounce(searchValue, 500);
