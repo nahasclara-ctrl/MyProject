@@ -7,6 +7,7 @@ export type IContextType={
   isAuthenticated:boolean;
   setIsAuthenticated:React.Dispatch<React.SetStateAction<boolean>>;
   checkAuthUser:() => Promise<boolean>;
+  logout: () => void;
 };
 
 
@@ -44,13 +45,16 @@ export type IUpdatePost = {
 };
 
 export type IUser = {
-  id: string;
+  id?: string;
   name: string;
   username: string;
   email: string;
   imageUrl: string;
   bio: string;
   save: SavedPost[];
+  $id: string;
+  followers?: string[];
+  following?: string[];
 };
 export type SavedPost= Models.Document & {
   post: Post;
@@ -74,4 +78,11 @@ export type Post = Models.Document & {
   imageUrl:string;
   likes: string[]; 
   };
+
+export type AppwritePost = Models.Document & {
+  caption: string;
+  tags: string[];
+  imageUrl: string;
+  imageId: string;
+};
 

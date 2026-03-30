@@ -8,6 +8,7 @@ export { default as Postdetails } from "./Postdetails";
 export { default as Profile } from "./Profile";
 export { default as Saved } from "./Saved";
 export { default as Updateprofile } from "./Updateprofile";
+export { default as Settings } from "./settings";
 import * as z from "zod"
 export const SignupValidation= z.object({
     name: z.string().min(2, { message: 'Too short' }),

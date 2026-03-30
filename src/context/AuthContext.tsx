@@ -4,6 +4,7 @@ import { createContext,useContext,useEffect,useState }  from 'react'
 import { useNavigate } from 'react-router-dom';
 
 export const INITIAL_USER = {
+   $id:'',
    id:'',
    name:'',
    username:'',
@@ -25,7 +26,7 @@ const AuthContext=createContext<IContextType>(INITIAL_STATE);
 
 
 const AuthProvider  = ({children}:{children:React.ReactNode}) => {
-    const [user,setUser]=useState<IUser>(INITIAL_USER)
+    const [user,setUser]=useState<IUser>(INITIAL_USER);
     const [isLoading,setIsLoading]=useState(false);
     const [isAuthenticated,setIsAuthenticated]=useState(false);
 
@@ -38,14 +39,17 @@ const AuthProvider  = ({children}:{children:React.ReactNode}) => {
 
             if(currentAccount){
                setUser({
-                id: currentAccount.$id,
-                name:currentAccount.name,
-                username:currentAccount.username,
-                email:currentAccount.email,
-                imageUrl:currentAccount.imageUrl,
-                bio:currentAccount.bio,
-               save: currentAccount.save, //adding this
-            })
+                 $id: currentAccount.$id,
+                 id: currentAccount.$id,  // alias for routes/profile
+                 name: currentAccount.name || '',
+                 username: currentAccount.username || '',
+                 email: currentAccount.email || '',
+                 imageUrl: currentAccount.imageUrl || '',
+                 bio: currentAccount.bio || '',
+                 save: currentAccount.save || [],
+                 followers: currentAccount.followers || [],
+                following: currentAccount.following || [],
+});
           
             setIsAuthenticated(true);
 
@@ -60,6 +64,13 @@ const AuthProvider  = ({children}:{children:React.ReactNode}) => {
          setIsLoading(false);
         }
 
+    };
+    const logout = () => {
+      setUser(INITIAL_USER);             
+      setIsAuthenticated(false);         
+      localStorage.removeItem("cookieFallback"); 
+      localStorage.removeItem("token");  
+      navigate("/login");                
     };
 
    useEffect(() => {
@@ -83,8 +94,9 @@ const AuthProvider  = ({children}:{children:React.ReactNode}) => {
         isLoading,
         isAuthenticated,
         setIsAuthenticated,
-        checkAuthUser
-    }
+        checkAuthUser,
+        logout,
+    };
 
 
   return (

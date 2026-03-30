@@ -70,6 +70,10 @@ const navigate=useNavigate();
     return navigate('/posts/${post.$id}')
 
   }
+  if (!user?.id) {
+    toast({ title: 'User not found. Please log in.' });
+    return;
+  }
     const newPost = await createPost({
       ...values,
       userId:user.id,

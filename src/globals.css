@@ -278,3 +278,100 @@
     @apply flex gap-4 items-center justify-start hover:bg-transparent hover:text-white !important;
   }
 }
+/* Full page container */
+.update-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100vw;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background-color: #f0f2f5;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+/* Card */
+.update-card {
+  background: white;
+  padding: 40px 30px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  text-align: center;
+}
+
+/* Heading */
+.update-card h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #111;
+}
+
+/* Image preview */
+.profile-preview {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 10px auto;
+  border: 3px solid #4caf50;
+}
+
+/* Styled file button */
+.choose-file-label {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #1976d2;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+  font-size: 14px;
+  margin: 0 auto 10px auto;
+}
+
+.choose-file-label:hover {
+  background-color: #1565c0;
+}
+
+/* Textarea */
+.update-card textarea {
+  width: 100%;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  resize: none;
+  height: 100px;
+  font-size: 14px;
+  outline: none;
+}
+
+.update-card textarea::placeholder {
+  color: #888;
+  font-style: italic;
+}
+
+/* Save button */
+.update-card button {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.update-card button:hover {
+  background-color: #45a049;
+}
