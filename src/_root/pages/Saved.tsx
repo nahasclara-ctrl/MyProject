@@ -1,24 +1,46 @@
-import React from "react";
-import { useSavedPosts } from "@/context/savedPostsContext";
-import type { Post } from "@/types";
-import PostCard from "@/components/shared/PostCard"; // your existing PostCard
+import { useGetCurrentUser } from "@/lib/react-query/queriesAndMutations";
+import Loader from "@/components/shared/Loader";
+import GridPostList from "@/components/shared/GridPostList";
 
 const Saved = () => {
-  const { savedPosts } = useSavedPosts();
+  const { data: currentUser, isLoading } = useGetCurrentUser();
 
-  if (savedPosts.length === 0)
+  if (isLoading) {
     return (
-      <div className="p-4 text-center text-gray-500">
-        No saved posts yet!
+      <div className="flex-center w-full h-full">
+        <Loader />
       </div>
     );
+  }
+
+  // currentUser.save is an array of save documents, each has a `.post` relation
+  const savedPosts = currentUser?.save
+    ?.map((saveDoc: any) => saveDoc.post)
+    .filter(Boolean)
+    .reverse() ?? [];
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto p-4">
-      <h1 className="text-2xl font-bold">Saved Posts</h1>
-      {savedPosts.map((post: Post) => (
-        <PostCard key={post.$id} post={post} />
-      ))}
+    <div className="saved-container">
+      <div className="flex gap-2 w-full max-w-5xl">
+        <img
+          src="/assets/icons/save.svg"
+          width={36}
+          height={36}
+          alt="saved"
+          className="invert-white"
+        />
+        <h2 className="h3-bold md:h2-bold text-left w-full">Saved Posts</h2>
+      </div>
+
+      {savedPosts.length === 0 ? (
+        <p className="text-light-4 mt-10 text-center w-full">
+          No saved posts yet. Save posts to find them here!
+        </p>
+      ) : (
+        <ul className="w-full flex justify-center max-w-5xl gap-9">
+          <GridPostList posts={savedPosts} showStats={false} />
+        </ul>
+      )}
     </div>
   );
 };

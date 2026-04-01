@@ -9,7 +9,7 @@ import { createPost, createUserAccount, deletePost, deleteSavedPost, getCurrentU
 import type { INewPost, INewUser, IUpdatePost } from "@/types";
 import { getRecentPosts } from "@/lib/appwrite/api";
 import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
-
+import { getFollowingPosts } from "../appwrite/api";
 
 // ----------------------------
 // Create Account Mutation
@@ -230,6 +230,22 @@ export const useGetExplorePosts = (currentUser?: any) => {
       if (!lastPage || lastPage.documents.length === 0) return null;
       const lastDocument = lastPage.documents[lastPage.documents.length - 1];
       return lastDocument.$id;
+    },
+    initialPageParam: null,
+  });
+};
+
+ 
+export const useGetFollowingPosts = (currentUser: any) => {
+  return useInfiniteQuery({
+    queryKey: ["followingPosts", currentUser?.$id],
+    enabled: !!currentUser?.$id,
+    queryFn: ({ pageParam }: { pageParam: string | null }) =>
+      getFollowingPosts({ pageParam, followingIds: currentUser?.following ?? [] }),
+    getNextPageParam: (lastPage: any) => {
+      if (!lastPage || lastPage.documents.length === 0) return null;
+      const lastDoc = lastPage.documents[lastPage.documents.length - 1];
+      return lastDoc.$id;
     },
     initialPageParam: null,
   });

@@ -5,24 +5,30 @@ import { appwriteConfig, account, databases, storage, avatars } from "./config";
 import type { AppwritePost } from "@/types";
 
 // Create User Account
-
 export async function createUserAccount(user: INewUser) {
   try {
-    const newAccount = await account.create({
-      userId: ID.unique(),
-      email: user.email,
-      password: user.password,
-      name: user.name,
-    });
+    // 1. Create account
+    const newAccount = await account.create(
+      ID.unique(),
+      user.email,
+      user.password,
+      user.name
+    );
 
-    if (!newAccount) throw new Error("Account creation failed");
-    await account.createEmailPasswordSession({
-      email: user.email,
-      password: user.password,  
-    })
-    const avatarUrl = avatars.getInitials({ name: user.name }).toString();
-    
-     await saveUserToDB({ //save the result
+    // 2. Logout FIRST (important)
+    await account.deleteSessions();
+
+    // 3. Login new user
+    await account.createEmailPasswordSession(
+      user.email,
+      user.password
+    );
+
+    // 4. Create avatar
+    const avatarUrl = avatars.getInitials(user.name);
+
+    // 5. Save user in DB
+    await saveUserToDB({
       accountId: newAccount.$id,
       email: newAccount.email,
       name: newAccount.name,
@@ -32,7 +38,8 @@ export async function createUserAccount(user: INewUser) {
 
     return newAccount;
   } catch (error) {
-  return null;
+    console.error(error);
+    return null;
   }
 }
 
@@ -373,17 +380,17 @@ export async function getInfinitePosts({
 
   if (pageParam) queries.push(Query.cursorAfter(pageParam));
 
-  // Exclude yourself and followings
-  excludeUserIds.forEach((id) => {
-    queries.push(Query.notEqual("userId", id));
-  });
+  //  FIXED HERE
+  if (excludeUserIds.length > 0) {
+    queries.push(Query.notEqual("creator", excludeUserIds));
+  }
 
   const posts = await databases.listDocuments(
     appwriteConfig.databaseId,
     appwriteConfig.postCollectionId,
     queries
   );
-  
+
   return posts;
 }
 
@@ -451,4 +458,38 @@ export async function getUsers(limit?: number) {
     console.error("getUsers failed:", error);
     return null;
   }
+}
+// ADD THIS FUNCTION to your api.ts file (src/lib/appwrite/api.ts)
+// This fetches posts only from users you follow, for the Home feed
+
+export async function getFollowingPosts({
+  pageParam,
+  followingIds = [],
+}: {
+  pageParam: string | null;
+  followingIds: string[];
+}) {
+  // If not following anyone, return empty
+  if (followingIds.length === 0) {
+    return { documents: [], total: 0 };
+  }
+
+  const queries: any[] = [
+    Query.orderDesc("$createdAt"),
+    Query.limit(10),
+  ];
+
+  if (pageParam) queries.push(Query.cursorAfter(pageParam));
+
+  // Filter to only posts from followed users
+  // Appwrite supports Query.equal with array for OR matching
+  queries.push(Query.equal("creator", followingIds));
+
+  const posts = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.postCollectionId,
+    queries
+  );
+
+  return posts;
 }
