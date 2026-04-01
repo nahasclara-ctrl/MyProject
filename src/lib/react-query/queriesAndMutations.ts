@@ -214,4 +214,23 @@ export const useGetUsers = (limit?: number) => {
     queryFn: () => getUsers(limit),
   });
 };
- 
+
+export const useGetExplorePosts = (currentUser?: any) => {
+  return useInfiniteQuery({
+    queryKey: ["explorePosts"],
+    enabled: !!currentUser, // only run if currentUser exists
+    queryFn: ({ pageParam }: { pageParam: string | null }) =>
+      getInfinitePosts({
+        pageParam,
+        excludeUserIds: currentUser
+          ? [currentUser.$id, ...(currentUser.following || [])]
+          : [],
+      }),
+    getNextPageParam: (lastPage) => {
+      if (!lastPage || lastPage.documents.length === 0) return null;
+      const lastDocument = lastPage.documents[lastPage.documents.length - 1];
+      return lastDocument.$id;
+    },
+    initialPageParam: null,
+  });
+};

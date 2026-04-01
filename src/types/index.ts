@@ -32,6 +32,7 @@ export type INewPost = {
   file: File[];
   location?: string;
   tags?: string;
+
 };
 
 export type IUpdatePost = {
@@ -65,24 +66,25 @@ export type INewUser = {
   username: string;
   password: string;
 };
-//post extanding appwrite document 
-export type Post = Models.Document & {
-  creator : {
-    $id:string;
-    name:string;
-    imageUrl:string;
-  };
-  caption:string;
-  location: string;
-  tags: string[];
-  imageUrl:string;
-  likes: string[]; 
-  };
 
 export type AppwritePost = Models.Document & {
+  userId: string;       // who created the post
   caption: string;
   tags: string[];
   imageUrl: string;
   imageId: string;
+  location?: string;
+
+  file?: File[];
+
+};
+
+export type Post = AppwritePost & {
+  creator?: {           // optional, fetched later for display
+    $id: string;
+    name: string;
+    imageUrl: string;
+  };
+  likes?: string[];
 };
 

@@ -2,7 +2,7 @@ import { ImageGravity } from "appwrite";
 import { ID, Query, Databases, Storage, Account, Avatars } from "appwrite";
 import type { INewPost, INewUser, IUpdatePost } from "@/types";
 import { appwriteConfig, account, databases, storage, avatars } from "./config";
-
+import type { AppwritePost } from "@/types";
 
 // Create User Account
 
@@ -180,49 +180,35 @@ export async function deleteFile(fileId: string) {
 // Create Post
 // ----------------------------
 export async function createPost(post: INewPost) {
-  try {
-    if (!post.file || post.file.length === 0)
-      throw new Error("No file provided");
+  if (!post.file || post.file.length === 0) throw new Error("No file provided");
 
-    // 1️⃣ Upload the file
-    const uploaded = await uploadFile(post.file[0]);
-    if (!uploaded) throw new Error("File upload failed");
+  // 1️⃣ Upload first file (you can loop for multiple)
+  const uploaded = await uploadFile(post.file[0]); 
+  if (!uploaded) throw new Error("File upload failed");
 
-    // 2️⃣ Get file preview URL
-    const fileUrl = await getFilePreview(uploaded.$id);
-    if (!fileUrl) {
-      await deleteFile(uploaded.$id);
-      throw new Error("Failed to get file preview");
-    }
-
-    // 3️⃣ Process tags
-    const tags = post.tags?.replace(/\s/g, "").split(",") || [];
-
-    // 4️⃣ Create post document
-    const newPost = await databases.createDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.postCollectionId,
-      ID.unique(),
-      {
-        creator: post.userId,
-        caption: post.caption,
-        imageUrl: fileUrl,
-        imageId: uploaded.$id,
-        location: post.location,
-        tags: tags,
-      }
-    );
-
-    if (!newPost) {
-      await deleteFile(uploaded.$id);
-      throw new Error("Post creation failed");
-    }
-
-    return newPost;
-  } catch (error) {
-    console.error(error);
-    return null;
+  // 2️⃣ Get preview URL
+  const fileUrl = await getFilePreview(uploaded.$id);
+  if (!fileUrl) {
+    await deleteFile(uploaded.$id);
+    throw new Error("Failed to get file preview");
   }
+
+  // 3️⃣ Create post document
+  const newPostDoc = await databases.createDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.postCollectionId,
+    ID.unique(),
+    {
+      creator: post.userId,
+      caption: post.caption,
+      imageUrl: fileUrl,
+      imageId: uploaded.$id,
+      location: post.location || "",
+      tags: post.tags || [],
+    }
+  );
+
+  return newPostDoc;
 }
 
 export async function getRecentPosts() {
@@ -377,33 +363,30 @@ export async function deletePost(postId:string, imageId:string){
   }
 }
 export async function getInfinitePosts({
-  pageParam}: { pageParam: string|null})
+  pageParam,
+  excludeUserIds = [],
+}: {
+  pageParam: string | null;
+  excludeUserIds?: string[];
+}) {
+  const queries: any[] = [Query.orderDesc("$updatedAt"), Query.limit(10)];
+
+  if (pageParam) queries.push(Query.cursorAfter(pageParam));
+
+  // Exclude yourself and followings
+  excludeUserIds.forEach((id) => {
+    queries.push(Query.notEqual("userId", id));
+  });
+
+  const posts = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.postCollectionId,
+    queries
+  );
   
- {
-  try {
-    const queries: any[] = [
-      Query.orderDesc("$updatedAt"),
-      Query.limit(10),
-    ];
-
-    if (pageParam) {
-      queries.push(Query.cursorAfter(pageParam.toString()));
-    }
-
-    const posts = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.postCollectionId,
-      queries
-    );
-
-    if (!posts) throw new Error("Failed to fetch posts");
-
-    return posts;
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
+  return posts;
 }
+
 
 export async function searchPosts(searchTerm: string) {
   try {

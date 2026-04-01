@@ -5,16 +5,18 @@ import useDebounce from '@/hooks/useDebounce';
 import Loader from '@/components/shared/Loader';
 import SearchResults from '@/components/shared/SearchResults';
 import GridPostList from '@/components/shared/GridPostList';
+import { useGetExplorePosts } from '@/lib/react-query/queriesAndMutations';
+import { useUserContext } from '@/context/AuthContext';
 const Explore = () => {
  const [searchValue, setSearchValue] = useState("");
  const debouncedValue = useDebounce(searchValue, 500);
- const {
-    data: posts,
-    fetchNextPage,
-    hasNextPage,
-    isFetching,
-  } = useGetPosts();
-
+ const { user: currentUser } = useUserContext();
+const {
+  data: posts,
+  fetchNextPage,
+  hasNextPage,
+  isFetching,
+} = useGetExplorePosts(currentUser ?? { $id: "", following: [] });
   const {
     data: searchedPosts,
     isFetching: isSearchFetching,
@@ -70,22 +72,22 @@ const Explore = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-9 w-full max-w-5xl">
-        {shouldShowSearchResults ? (
-          <SearchResults isSearchFetching={isSearchFetching} searchedPosts={searchedPosts} />
-        ) : shouldShowPosts ? (
-          <p className="text-light-4 mt-10 text-center w-full">
-            End of posts
-          </p>
-        ) : (
-          posts.pages.map((item: any, index: number) => (
-            <GridPostList
-              key={`page-${index}`}
-              posts={item.documents}
-            />
-          ))
-        )}
-      </div>
+     <div className="flex flex-wrap gap-9 w-full max-w-5xl">
+  {shouldShowSearchResults ? (
+    <SearchResults isSearchFetching={isSearchFetching} searchedPosts={searchedPosts} />
+  ) : !posts || posts.pages.every((page: any) => page.documents.length === 0) ? (
+    <p className="text-light-4 mt-10 text-center w-full">
+      No posts to show.
+    </p>
+  ) : (
+    posts.pages.map((page: any, index: number) => (
+      <GridPostList
+        key={`page-${index}`}
+        posts={page.documents}
+      />
+    ))
+  )}
+</div>
     </div>
   );
 };

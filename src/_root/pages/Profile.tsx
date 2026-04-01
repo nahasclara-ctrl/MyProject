@@ -17,7 +17,7 @@ const Profile = () => {
 
   if (isUserLoading) {
     return (
-      <div className="flex-center w-full h-full">
+      <div className="flex justify-center items-center w-full h-full">
         <Loader className="animate-spin" />
       </div>
     );
@@ -25,7 +25,7 @@ const Profile = () => {
 
   if (!user) {
     return (
-      <div className="flex-center w-full h-full">
+      <div className="flex justify-center items-center w-full h-full">
         <p className="text-light-4">User not found.</p>
       </div>
     );
@@ -39,11 +39,9 @@ const Profile = () => {
 
     setLoadingFollow(true);
     try {
-      // 1️⃣ Update currentUser following immediately (context)
       const updatedFollowing = [...(currentUser.following || []), user.$id];
       setUser({ ...currentUser, following: updatedFollowing });
 
-      // 2️⃣ Update database for currentUser
       await databases.updateDocument(
         appwriteConfig.databaseId,
         appwriteConfig.usersCollectionId,
@@ -51,7 +49,6 @@ const Profile = () => {
         { following: updatedFollowing }
       );
 
-      // 3️⃣ Update database for the followed user
       const updatedFollowers = [...(user.followers || []), currentUser.$id];
       await databases.updateDocument(
         appwriteConfig.databaseId,
@@ -60,7 +57,6 @@ const Profile = () => {
         { followers: updatedFollowers }
       );
 
-      // 4️⃣ Update local user object to reflect new followers count
       user.followers = updatedFollowers;
     } catch (error) {
       console.error("Error following user:", error);
@@ -70,104 +66,107 @@ const Profile = () => {
   };
 
   return (
-    <div className="profile-container">
-      <div className="profile-inner_container">
-        {/* Header */}
-        <div className="flex xl:flex-row flex-col max-xl:items-center flex-1 gap-7">
-          <img
-            src={user.imageUrl || "/assets/icons/profile-placeholder.svg"}
-            alt="profile"
-            className="w-28 h-28 lg:h-36 lg:w-36 rounded-full object-cover"
-          />
+    <div className="profile-container w-full min-h-screen px-6 py-10 bg-white">
+      {/* Header + Profile Info */}
+      <div className="flex flex-col xl:flex-row gap-8 w-full items-start xl:items-center mb-10">
+        <img
+          src={user.imageUrl || "/assets/icons/profile-placeholder.svg"}
+          alt="profile"
+          className="w-28 h-28 lg:w-36 lg:h-36 rounded-full object-cover"
+        />
 
-          <div className="flex flex-col flex-1 justify-between md:mt-2">
-            <div className="flex flex-col w-full">
-              <h1 className="text-center xl:text-left h3-bold md:h1-semibold w-full">{user.name}</h1>
-              <p className="small-regular md:body-medium text-light-3 text-center xl:text-left">
-                @{user.username}
-              </p>
-            </div>
-
-            {/* Stats */}
-            <div className="flex gap-8 mt-10 items-center justify-center xl:justify-start flex-wrap z-20">
-              <StatBlock value={userPosts?.documents.length ?? 0} label="Posts" />
-              <StatBlock value={user.followers?.length ?? 0} label="Followers" />
-              <StatBlock value={currentUser.following?.length ?? 0} label="Following" />
-            </div>
-
-            {/* Bio */}
-            {user.bio && (
-              <p className="small-medium md:base-medium text-center xl:text-left mt-7 max-w-screen-sm">
-                {user.bio}
-              </p>
-            )}
+        <div className="flex flex-col flex-1 w-full">
+          <div className="flex flex-col w-full mb-4">
+            <h1 className="text-center xl:text-left h3-bold md:h1-semibold text-black">{user.name}</h1>
+            <p className="small-regular md:body-medium text-gray-600 text-center xl:text-left">
+              @{user.username}
+            </p>
           </div>
 
-          {/* Edit / Follow button */}
-          <div className="flex justify-center gap-4">
-            {isOwnProfile ? (
-              <Link
-                to={`/update-profile/${user.$id}`}
-                className="h-12 bg-dark-4 px-5 text-light-1 flex-center gap-2 rounded-lg"
-              >
-                <img src="/assets/icons/edit.svg" alt="edit" width={20} height={20} />
-                <p className="flex whitespace-nowrap small-medium">Edit Profile</p>
-              </Link>
-            ) : (
-              <button
-                className={`shad-button_primary px-8 ${isFollowing ? "bg-gray-400" : ""}`}
-                onClick={handleFollow}
-                disabled={loadingFollow || isFollowing}
-              >
-                {loadingFollow ? "Following..." : isFollowing ? "Following" : "Follow"}
-              </button>
-            )}
+          {/* Stats */}
+          <div className="flex flex-wrap gap-8 justify-center xl:justify-start items-center mb-5">
+            <StatBlock value={userPosts?.documents.length ?? 0} label="Posts" />
+            <StatBlock value={user.followers?.length ?? 0} label="Followers" />
+            <StatBlock value={currentUser.following?.length ?? 0} label="Following" />
           </div>
-        </div>
 
-        {/* Divider */}
-        <div className="flex w-full h-0.5 bg-dark-4/80 mt-10" />
-
-        {/* Posts Grid */}
-        <div className="flex flex-col w-full mt-8">
-          <h3 className="body-bold md:h3-bold mb-5">Posts</h3>
-
-          {isPostsLoading ? (
-            <div className="flex-center w-full py-10">
-              <Loader className="animate-spin" />
-            </div>
-          ) : userPosts?.documents.length === 0 ? (
-            <p className="text-light-4 text-center py-10">No posts yet.</p>
-          ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full">
-              {userPosts?.documents.map((post: any) => (
-                <li
-                  key={post.$id}
-                  className="relative min-w-80 h-80 cursor-pointer"
-                  onClick={() => navigate(`/posts/${post.$id}`)}
-                >
-                  <img
-                    src={post.imageUrl}
-                    alt={post.caption}
-                    className="w-full h-full object-cover rounded-[24px]"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent rounded-b-[24px] p-4">
-                    <p className="text-white small-medium line-clamp-1">{post.caption}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+          {/* Bio */}
+          {user.bio && (
+            <p className="small-medium md:base-medium text-center xl:text-left">
+              {user.bio}
+            </p>
           )}
         </div>
+
+        {/* Edit / Follow button */}
+        <div className="flex justify-center mt-5 xl:mt-0">
+          {isOwnProfile ? (
+            <Link
+              to={`/update-profile/${user.$id}`}
+              className="h-12 bg-dark-4 px-5 text-light-1 flex items-center justify-center gap-2 rounded-lg"
+            >
+              <img src="/assets/icons/edit.svg" alt="edit" width={20} height={20} />
+              <p className="flex whitespace-nowrap small-medium">Edit Profile</p>
+            </Link>
+          ) : (
+            <button
+              className={`shad-button_primary px-8 ${isFollowing ? "bg-blue-600 text-white" : ""}`}
+              onClick={handleFollow}
+              disabled={loadingFollow || isFollowing}
+            >
+              {loadingFollow ? "Following..." : isFollowing ? "Following" : "Follow"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="w-full h-0.5 bg-dark-4/80 mb-8" />
+
+      {/* Posts Section - Full Width */}
+      <div className="flex flex-col w-full">
+        <h3 className="body-bold md:h3-bold mb-5">Posts</h3>
+
+        {isPostsLoading ? (
+          <div className="flex justify-center w-full py-10">
+            <Loader className="animate-spin" />
+          </div>
+        ) : (userPosts?.documents ?? []).length === 0 ? (
+          <p className="text-light-4 text-center py-10">No posts yet.</p>
+        ) : (
+          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 w-full">
+            {(userPosts?.documents ?? []).map((post: any) => (
+              <li
+                key={post.$id}
+                className="relative cursor-pointer rounded-[24px] overflow-hidden transition-transform duration-200 hover:scale-105"
+                onClick={() => navigate(`/posts/${post.$id}`)}
+              >
+                {post.imageUrl && (
+                  <img
+                    src={post.imageUrl}
+                    alt={post.caption ?? "Post image"}
+                    className="w-full aspect-square object-cover"
+                  />
+                )}
+
+                {post.caption && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <p className="text-white small-medium line-clamp-1">{post.caption}</p>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
 };
 
 const StatBlock = ({ value, label }: { value: number; label: string }) => (
-  <div className="flex-center gap-2">
-    <p className="small-semibold lg:body-bold text-primary-500">{value}</p>
-    <p className="small-medium lg:base-medium text-light-2">{label}</p>
+  <div className="flex items-center gap-2">
+    <p className="small-semibold lg:body-bold text-gray-900">{value}</p>
+    <p className="small-medium lg:base-medium text-gray-600">{label}</p>
   </div>
 );
 
