@@ -37,9 +37,9 @@ const Saved = () => {
           No saved posts yet. Save posts to find them here!
         </p>
       ) : (
-        <ul className="w-full flex justify-center max-w-5xl gap-9">
+        <div className="w-full flex justify-center max-w-5xl">
           <GridPostList posts={savedPosts} showStats={false} />
-        </ul>
+        </div>
       )}
     </div>
   );

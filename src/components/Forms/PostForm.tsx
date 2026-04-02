@@ -1,4 +1,3 @@
-import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -59,6 +58,7 @@ const navigate=useNavigate();
   if(post && action==='Update'){
     const updatedPost=await updatePost({
       ...values,
+      tags: values.tags.split(",").map(tag => tag.trim()),
       postId:post.$id,
       imageId:post?.imageId,
       imageUrl:post?.imageUrl,
@@ -67,7 +67,7 @@ const navigate=useNavigate();
     if(!updatedPost){
       toast({title:'Please try again'})
     }
-    return navigate('/posts/${post.$id}')
+    return navigate(`/posts/${post.$id}`)
 
   }
   if (!user?.id) {
@@ -76,6 +76,7 @@ const navigate=useNavigate();
   }
     const newPost = await createPost({
       ...values,
+      tags: values.tags.split(",").map(tag => tag.trim()), // FIXED HERE
       userId:user.id,
     })
     if(!newPost) {
@@ -167,8 +168,7 @@ const navigate=useNavigate();
           </Button>
           <Button type="submit" className="shad-button_primary whitespace-nowrap" 
            disabled ={isLoadingCreate || isLoadingUpdate}>
-            {isLoadingCreate || isLoadingUpdate && 'Loading...'}
-            {action} Post
+            {isLoadingCreate || isLoadingUpdate ? 'Loading...' : `${action} Post`}
           </Button>
         </div>
       </form>

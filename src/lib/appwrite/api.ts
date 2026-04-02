@@ -270,6 +270,7 @@ export async function savePost(postId: string,userId:string){
 
   }catch(error){
     console.error("Error saving post:", error);
+    return null; //
   }
 }
 export async function deleteSavedPost(savedRecordId: string,){
@@ -328,7 +329,7 @@ export async function updatePost(post:IUpdatePost) {
   }  
   
     // 3️⃣ Process tags
-    const tags = post.tags?.replace(/\s/g, "").split(",") || [];
+    const tags = post.tags || [];
 
     // 4️⃣ Create post document
     const updatedPost = await databases.updateDocument(
@@ -382,7 +383,7 @@ export async function getInfinitePosts({
 
   //  FIXED HERE
   if (excludeUserIds.length > 0) {
-    queries.push(Query.notEqual("creator", excludeUserIds));
+    queries.push(Query.notEqual("creator", excludeUserIds[0]));
   }
 
   const posts = await databases.listDocuments(

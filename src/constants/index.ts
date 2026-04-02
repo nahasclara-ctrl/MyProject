@@ -54,6 +54,16 @@ export const bottombarLinks =[
         label:"People",                     
     },
     {
+    imgURL: "/assets/icons/chat.svg",
+    route: "/chat",
+    label: "Chat",
+  },
+  {
+    imgURL: "/assets/icons/like.svg",
+    route: "/notifications",
+    label: "Notifications",
+  },
+    {
         imgURL:"/assets/icons/bookmark.svg",                    
         route:"/saved",     
         label:"Saved",

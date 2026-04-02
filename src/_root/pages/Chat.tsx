@@ -1,25 +1,126 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGetUsers } from "@/lib/react-query/queriesAndMutations";
 import { useUserContext } from "@/context/AuthContext";
 import Loader from "@/components/shared/Loader";
 import { Link } from "react-router-dom";
-
-// NOTE: This is a UI-only chat page.
-// To make messages persist, add a "messages" collection in Appwrite
-// with fields: senderId, receiverId, text, createdAt
+import { databases, appwriteConfig, ID } from "@/lib/appwrite/config";
+import { Query } from "appwrite";
 
 type Message = {
+  $id: string;
   senderId: string;
+  receiverId: string;
   text: string;
-  createdAt: string;
+  $createdAt: string;
 };
+
+async function fetchMessages(userId1: string, userId2: string): Promise<Message[]> {
+  const res = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.messagesCollectionID,
+    [
+      Query.or([
+        Query.and([
+          Query.equal("senderId", userId1),
+          Query.equal("receiverId", userId2),
+        ]),
+        Query.and([
+          Query.equal("senderId", userId2),
+          Query.equal("receiverId", userId1),
+        ]),
+      ]),
+      Query.orderAsc("$createdAt"),
+      Query.limit(100),
+    ]
+  );
+  return res.documents as unknown as Message[];
+}
+
+async function sendMessage(senderId: string, receiverId: string, text: string) {
+  return await databases.createDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.messagesCollectionID,
+    ID.unique(),
+    { senderId, receiverId, text }
+  );
+}
 
 const Chat = () => {
   const { user: currentUser } = useUserContext();
   const { data: allUsers, isLoading } = useGetUsers();
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [messages, setMessages] = useState<Record<string, Message[]>>({});
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (!selectedUser) return;
+
+    const load = async () => {
+      setIsLoadingMessages(true);
+      try {
+        const msgs = await fetchMessages(currentUser.$id, selectedUser.$id);
+        setMessages(msgs);
+      } catch (e) {
+        console.error("Failed to load messages:", e);
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    };
+
+    load();
+
+    // Poll every 3 seconds for new messages
+    pollRef.current = setInterval(async () => {
+      try {
+        const msgs = await fetchMessages(currentUser.$id, selectedUser.$id);
+        setMessages(msgs);
+      } catch (e) {
+        console.error("Polling failed:", e);
+      }
+    }, 3000);
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [selectedUser, currentUser.$id]);
+
+  const handleSend = async () => {
+    if (!inputText.trim() || !selectedUser || isSending) return;
+
+    const text = inputText.trim();
+    setInputText("");
+    setIsSending(true);
+
+    // Optimistic update
+    const optimistic: Message = {
+      $id: "temp-" + Date.now(),
+      senderId: currentUser.$id,
+      receiverId: selectedUser.$id,
+      text,
+      $createdAt: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
+
+    try {
+      await sendMessage(currentUser.$id, selectedUser.$id, text);
+      const msgs = await fetchMessages(currentUser.$id, selectedUser.$id);
+      setMessages(msgs);
+    } catch (e) {
+      console.error("Failed to send message:", e);
+      setMessages((prev) => prev.filter((m) => m.$id !== optimistic.$id));
+      setInputText(text);
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -29,53 +130,28 @@ const Chat = () => {
     );
   }
 
-  // Filter out self
   const otherUsers =
     allUsers?.documents?.filter((u: any) => u.$id !== currentUser.$id) ?? [];
 
-  const conversation = selectedUser ? messages[selectedUser.$id] ?? [] : [];
-
-  const handleSend = () => {
-    if (!inputText.trim() || !selectedUser) return;
-
-    const newMsg: Message = {
-      senderId: currentUser.$id,
-      text: inputText.trim(),
-      createdAt: new Date().toISOString(),
-    };
-
-    setMessages((prev) => ({
-      ...prev,
-      [selectedUser.$id]: [...(prev[selectedUser.$id] ?? []), newMsg],
-    }));
-    setInputText("");
-  };
-
   return (
     <div className="flex flex-1 h-full w-full max-w-5xl mx-auto overflow-hidden">
-      {/* Sidebar - User List */}
+      {/* Sidebar */}
       <div className="w-72 flex-shrink-0 border-r border-dark-4 flex flex-col bg-dark-2">
         <div className="px-5 py-5 border-b border-dark-4">
           <h2 className="h3-bold">Messages</h2>
         </div>
-
         <ul className="flex flex-col overflow-y-auto flex-1">
           {otherUsers.length === 0 ? (
-            <p className="text-light-4 text-sm text-center p-6">
-              No users to message yet.
-            </p>
+            <p className="text-light-4 text-sm text-center p-6">No users yet.</p>
           ) : (
             otherUsers.map((person: any) => {
               const isSelected = selectedUser?.$id === person.$id;
-              const convo = messages[person.$id] ?? [];
-              const lastMsg = convo[convo.length - 1];
-
               return (
                 <li
                   key={person.$id}
                   onClick={() => setSelectedUser(person)}
                   className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-dark-3 ${
-                    isSelected ? "bg-dark-3" : ""
+                    isSelected ? "bg-dark-3 border-l-2 border-primary-500" : ""
                   }`}
                 >
                   <img
@@ -85,9 +161,7 @@ const Chat = () => {
                   />
                   <div className="flex flex-col min-w-0 flex-1">
                     <p className="text-light-1 small-semibold truncate">{person.name}</p>
-                    <p className="text-light-4 tiny-medium truncate">
-                      {lastMsg ? lastMsg.text : `@${person.username}`}
-                    </p>
+                    <p className="text-light-4 tiny-medium truncate">@{person.username}</p>
                   </div>
                 </li>
               );
@@ -96,8 +170,8 @@ const Chat = () => {
         </ul>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex flex-col flex-1 bg-dark-1">
+      {/* Chat area */}
+      <div className="flex flex-col flex-1 bg-dark-1 overflow-hidden">
         {!selectedUser ? (
           <div className="flex-center flex-col gap-4 h-full">
             <p className="text-5xl">💬</p>
@@ -108,8 +182,8 @@ const Chat = () => {
           </div>
         ) : (
           <>
-            {/* Chat Header */}
-            <div className="flex items-center gap-3 px-6 py-4 border-b border-dark-4 bg-dark-2">
+            {/* Header */}
+            <div className="flex items-center gap-3 px-6 py-4 border-b border-dark-4 bg-dark-2 flex-shrink-0">
               <Link to={`/profile/${selectedUser.$id}`}>
                 <img
                   src={selectedUser.imageUrl || "/assets/icons/profile-placeholder.svg"}
@@ -125,7 +199,11 @@ const Chat = () => {
 
             {/* Messages */}
             <div className="flex flex-col flex-1 overflow-y-auto px-6 py-4 gap-3">
-              {conversation.length === 0 ? (
+              {isLoadingMessages ? (
+                <div className="flex-center h-full">
+                  <Loader />
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="flex-center flex-col gap-3 h-full">
                   <img
                     src={selectedUser.imageUrl || "/assets/icons/profile-placeholder.svg"}
@@ -137,13 +215,17 @@ const Chat = () => {
                   </p>
                 </div>
               ) : (
-                conversation.map((msg, i) => {
+                messages.map((msg) => {
                   const isMe = msg.senderId === currentUser.$id;
                   return (
-                    <div
-                      key={i}
-                      className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-                    >
+                    <div key={msg.$id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                      {!isMe && (
+                        <img
+                          src={selectedUser.imageUrl || "/assets/icons/profile-placeholder.svg"}
+                          alt={selectedUser.name}
+                          className="w-7 h-7 rounded-full object-cover mr-2 self-end flex-shrink-0"
+                        />
+                      )}
                       <div
                         className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl text-sm ${
                           isMe
@@ -153,14 +235,22 @@ const Chat = () => {
                       >
                         {msg.text}
                       </div>
+                      {isMe && (
+                        <img
+                          src={currentUser.imageUrl || "/assets/icons/profile-placeholder.svg"}
+                          alt="me"
+                          className="w-7 h-7 rounded-full object-cover ml-2 self-end flex-shrink-0"
+                        />
+                      )}
                     </div>
                   );
                 })
               )}
+              <div ref={bottomRef} />
             </div>
 
             {/* Input */}
-            <div className="flex items-center gap-3 px-6 py-4 border-t border-dark-4 bg-dark-2">
+            <div className="flex items-center gap-3 px-6 py-4 border-t border-dark-4 bg-dark-2 flex-shrink-0">
               <img
                 src={currentUser.imageUrl || "/assets/icons/profile-placeholder.svg"}
                 alt="me"
@@ -176,19 +266,10 @@ const Chat = () => {
               />
               <button
                 onClick={handleSend}
-                disabled={!inputText.trim()}
-                className="bg-primary-500 hover:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full w-10 h-10 flex-center transition-colors flex-shrink-0"
+                disabled={!inputText.trim() || isSending}
+                className="bg-primary-500 hover:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors flex-shrink-0 text-lg"
               >
-                <img
-                  src="/assets/icons/send.svg"
-                  alt="send"
-                  width={18}
-                  height={18}
-                  className="invert"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).outerHTML = "➤";
-                  }}
-                />
+                ➤
               </button>
             </div>
           </>

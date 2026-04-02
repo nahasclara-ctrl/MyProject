@@ -10,14 +10,18 @@ import {
   Postdetails,
   Profile,
   Saved,
-  Updateprofile,Settings
+  Updateprofile,
+  Settings,
 } from "./_root/pages";
- 
+
+import Chat from "./_root/pages/Chat";
+import Notifications from "./_root/pages/Notification";
+
 import SigninForm from "./_auth/forms/SigninForm";
 import SignupForm from "./_auth/forms/SignupForm";
 import AuthLayout from "./_auth/AuthLayout";
 import RootLayout from "./_root/RootLayout";
-import FullPageLayout from "./_root/layouts/FullPageLayout"; // ✅ new
+import FullPageLayout from "./_root/layouts/FullPageLayout";
 import { Toaster } from "@/components/ui/toaster";
 import { SavedPostsProvider } from "./context/savedPostsContext";
 
@@ -44,11 +48,13 @@ const App = () => {
             <Route path="/profile/:id/*" element={<Profile />} />
             <Route path="/update-profile/:id" element={<Updateprofile />} />
             <Route path="/liked-posts" element={<LikedPosts />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/notifications" element={<Notifications />} />
           </Route>
 
           {/* Full-screen routes */}
           <Route element={<FullPageLayout />}>
-            <Route path="/settings" element={<Settings />} /> {/* ✅ full page */}
+            <Route path="/settings" element={<Settings />} />
           </Route>
         </Routes>
 
