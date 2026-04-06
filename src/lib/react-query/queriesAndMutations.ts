@@ -10,6 +10,7 @@ import type { INewPost, INewUser, IUpdatePost } from "@/types";
 import { getRecentPosts } from "@/lib/appwrite/api";
 import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
 import { getFollowingPosts } from "../appwrite/api";
+import { getSavedPosts } from "../appwrite/api";
 
 // ----------------------------
 // Create Account Mutation
@@ -106,9 +107,16 @@ export const useSavePost = () =>{
     
 
     });
-
-
 };
+
+export const useGetSavedPosts = (userId: string) => {
+  return useQuery({
+    queryKey: ["savedPosts", userId],
+    queryFn: () => getSavedPosts(userId),
+    enabled: !!userId,
+  });
+};
+
 export const useDeletSavedPost = () =>{
   const queryClient = useQueryClient();
   return useMutation({
@@ -155,7 +163,7 @@ export const useUpdatedPost =() =>{
     })
   }
 })
-}
+};
 export const useDeletePost =() =>{
   const queryClient= useQueryClient();
   return useMutation({
@@ -166,7 +174,7 @@ export const useDeletePost =() =>{
     })
   }
   })
-}
+};
 export const useGetPosts = () => {
   return useInfiniteQuery({
     queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
