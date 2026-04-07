@@ -1,9 +1,29 @@
-import { useGetCurrentUser } from "@/lib/react-query/queriesAndMutations";
+import { useUserContext } from "@/context/AuthContext";
+import { useGetSavedPosts } from "@/lib/react-query/queriesAndMutations"; 
+import { getPostById } from "@/lib/appwrite/api";
+import { useEffect, useState } from "react";
 import Loader from "@/components/shared/Loader";
 import GridPostList from "@/components/shared/GridPostList";
 
 const Saved = () => {
-  const { data: currentUser, isLoading } = useGetCurrentUser();
+  const { user } = useUserContext();
+  const { data: savedDocs, isLoading } = useGetSavedPosts(user.$id); 
+
+  const [savedPosts, setSavedPosts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      if (!savedDocs) return;
+
+      const posts = await Promise.all(
+        savedDocs.map((doc: any) => getPostById(doc.post))
+      );
+
+      setSavedPosts(posts.filter(Boolean).reverse());
+    };
+
+    fetchPosts();
+  }, [savedDocs]);
 
   if (isLoading) {
     return (
@@ -13,28 +33,15 @@ const Saved = () => {
     );
   }
 
-  // currentUser.save is an array of save documents, each has a `.post` relation
-  const savedPosts = currentUser?.save
-    ?.map((saveDoc: any) => saveDoc.post)
-    .filter(Boolean)
-    .reverse() ?? [];
-
   return (
     <div className="saved-container">
-      <div className="flex gap-2 w-full max-w-5xl">
-        <img
-          src="/assets/icons/save.svg"
-          width={36}
-          height={36}
-          alt="saved"
-          className="invert-white"
-        />
-        <h2 className="h3-bold md:h2-bold text-left w-full">Saved Posts</h2>
-      </div>
+      <h2 className="h3-bold md:h2-bold text-left w-full">
+        Saved Posts
+      </h2>
 
       {savedPosts.length === 0 ? (
         <p className="text-light-4 mt-10 text-center w-full">
-          No saved posts yet. Save posts to find them here!
+          No saved posts yet.
         </p>
       ) : (
         <div className="w-full flex justify-center max-w-5xl">

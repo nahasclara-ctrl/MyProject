@@ -4,6 +4,7 @@ import type { INewPost, INewUser, IUpdatePost } from "@/types";
 import { appwriteConfig, account, databases, storage, avatars } from "./config";
 import type { AppwritePost } from "@/types";
 
+
 // Create User Account
 export async function createUserAccount(user: INewUser) {
   try {
@@ -312,6 +313,16 @@ export async function savePost(postId: string,userId:string){
     return null; //
   }
 }
+
+export const getSavedPosts = async (userId: string) => {
+  const response = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.savesCollectionId,
+    [Query.equal("user", userId)]
+  );
+
+  return response.documents;
+};
 export async function deleteSavedPost(savedRecordId: string,){
   try {
     const statusCode  = await databases.deleteDocument(
