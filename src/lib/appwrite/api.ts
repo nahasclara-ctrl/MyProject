@@ -93,6 +93,8 @@ export async function signInAccount(user: { email: string; password: string }) {
 // ----------------------------
 // Get Current User
 // ----------------------------
+// REPLACE your getCurrentUser function in src/lib/appwrite/api.ts with this:
+
 export async function getCurrentUser() {
   try {
     const currentAccount = await account.get();
@@ -107,13 +109,40 @@ export async function getCurrentUser() {
     if (!currentUser || currentUser.documents.length === 0)
       throw new Error("User not found");
 
-    return currentUser.documents[0];
+    const user = currentUser.documents[0];
+
+    // Populate each save record with its full post data
+    if (user.save && user.save.length > 0) {
+      const populatedSaves = await Promise.all(
+        user.save.map(async (saveDoc: any) => {
+          // If post is already an object with $id, it's already populated
+          if (saveDoc.post && typeof saveDoc.post === "object" && saveDoc.post.$id) {
+            return saveDoc;
+          }
+          // Otherwise fetch the post manually
+          try {
+            const postId = typeof saveDoc.post === "string" ? saveDoc.post : saveDoc.post?.$id;
+            if (!postId) return saveDoc;
+            const post = await databases.getDocument(
+              appwriteConfig.databaseId,
+              appwriteConfig.postCollectionId,
+              postId
+            );
+            return { ...saveDoc, post };
+          } catch {
+            return saveDoc;
+          }
+        })
+      );
+      user.save = populatedSaves;
+    }
+
+    return user;
   } catch (error) {
     console.error(error);
     return null;
   }
 }
-
 // ----------------------------
 // Logout
 // ----------------------------
@@ -217,7 +246,6 @@ export async function createPost(post: INewPost) {
 
   return newPostDoc;
 }
-
 export async function getRecentPosts() {
   try {
     const posts = await databases.listDocuments(
@@ -229,14 +257,25 @@ export async function getRecentPosts() {
       ]
     );
 
-    if (!posts) throw new Error("No posts found");
+    // For each post, fetch the creator info manually
+    const postsWithCreators = await Promise.all(
+      posts.documents.map(async (post) => {
+        const creator = await databases.getDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.usersCollectionId,
+          post.creator
+        );
+        return { ...post, creator };
+      })
+    );
 
-    return posts;
+    return postsWithCreators;
   } catch (error) {
     console.error("Error fetching recent posts:", error);
     throw error;
   }
 }
+
 export async function likePost(postId: string, likesArray: string[]){
   try {
     const updatedPost  = await databases.updateDocument(
@@ -377,7 +416,7 @@ export async function getInfinitePosts({
   pageParam: string | null;
   excludeUserIds?: string[];
 }) {
-  const queries: any[] = [Query.orderDesc("$updatedAt"), Query.limit(10)];
+  const queries: any[] = [Query.orderDesc("$updatedAt"), Query.limit(10), Query.select(["*", "creator"])];
 
   if (pageParam) queries.push(Query.cursorAfter(pageParam));
 
@@ -470,7 +509,6 @@ export async function getFollowingPosts({
   pageParam: string | null;
   followingIds: string[];
 }) {
-  // If not following anyone, return empty
   if (followingIds.length === 0) {
     return { documents: [], total: 0 };
   }
@@ -482,8 +520,6 @@ export async function getFollowingPosts({
 
   if (pageParam) queries.push(Query.cursorAfter(pageParam));
 
-  // Filter to only posts from followed users
-  // Appwrite supports Query.equal with array for OR matching
   queries.push(Query.equal("creator", followingIds));
 
   const posts = await databases.listDocuments(
@@ -492,5 +528,46 @@ export async function getFollowingPosts({
     queries
   );
 
-  return posts;
+  // I  ADD THIS PART
+  const postsWithCreators = await Promise.all(
+    posts.documents.map(async (post) => {
+      const creator = await databases.getDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.usersCollectionId,
+        post.creator
+      );
+
+      return { ...post, creator };
+    })
+  );
+
+  return {
+    ...posts,
+    documents: postsWithCreators,
+  };
+}
+export async function searchUsers(searchTerm: string) {
+  try {
+    const byName = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.usersCollectionId,
+      [Query.search("name", searchTerm)]
+    );
+    const byUsername = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.usersCollectionId,
+      [Query.search("username", searchTerm)]
+    );
+
+    // Merge and deduplicate
+    const merged = [...byName.documents];
+    byUsername.documents.forEach((u) => {
+      if (!merged.find((m) => m.$id === u.$id)) merged.push(u);
+    });
+
+    return { documents: merged, total: merged.length };
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 }

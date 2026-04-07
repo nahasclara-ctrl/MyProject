@@ -250,3 +250,13 @@ export const useGetFollowingPosts = (currentUser: any) => {
     initialPageParam: null,
   });
 };
+import { searchUsers } from "../appwrite/api"; // add to existing import line
+ 
+export const useSearchUsers = (searchTerm: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.SEARCH_POSTS, "users", searchTerm],
+    queryFn: () => searchUsers(searchTerm),
+    enabled: !!searchTerm,
+  });
+};
+ 

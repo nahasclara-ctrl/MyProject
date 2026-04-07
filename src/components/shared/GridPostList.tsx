@@ -29,7 +29,10 @@ const GridPostList = ({
             />
           </Link>
 
-          <div className="grid-post_user">
+          <div
+            className="grid-post_user"
+            onClick={(e) => e.stopPropagation()}
+          >
             {showUser && post.creator && (
               <div className="flex items-center justify-start gap-2 flex-1">
                 <img
@@ -41,7 +44,11 @@ const GridPostList = ({
               </div>
             )}
 
-            {showStats && <PostStats post={post} userId={user?.id ||""} />}
+            {showStats && (
+              <div onClick={(e) => e.preventDefault()}>
+                <PostStats post={post} userId={user?.id || ""} />
+              </div>
+            )}
           </div>
         </li>
       ))}
