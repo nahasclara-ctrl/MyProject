@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import { formatDate } from "@/lib/utils";
 import { useUserContext } from "@/context/AuthContext";
@@ -8,7 +7,7 @@ import type { Post } from "@/types";
 type PostCardProps = { post: Post };
 
 const PostCard = ({ post }: PostCardProps) => {
-   console.log(post.creator);
+  
   const { user } = useUserContext();
 
   return (
@@ -57,7 +56,8 @@ const PostCard = ({ post }: PostCardProps) => {
 
         {/* Image */}
         {post.imageUrl && (
-          <img src={post.imageUrl} alt="post image" className="post-card_img w-full rounded-lg" />
+          <img src={post.imageUrl} alt="post image" className="post-card_img w-full rounded-lg"
+             />
         
         )}
       </Link>

@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Post } from "@/types";
 import { useUserContext } from "@/context/AuthContext";
 import {
   useLikePost,
   useSavePost,
   useDeletSavedPost,
-  useGetCurrentUser,useGetSavedPosts,
+  useGetCurrentUser,
 } from "@/lib/react-query/queriesAndMutations";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
@@ -18,83 +18,80 @@ type PostStatsProps = {
 const PostStats = ({ post, userId }: PostStatsProps) => {
   const { user } = useUserContext();
   const queryClient = useQueryClient();
+  const { data: currentUser } = useGetCurrentUser();
 
-  // ✅ Fix likes initialization
   const [likes, setLikes] = useState<string[]>(
     Array.isArray(post.likes)
-      ? post.likes.map((u: any) =>
-          typeof u === "string" ? u : u.$id
-        )
+      ? post.likes.map((u: any) => (typeof u === "string" ? u : u.$id))
       : []
   );
 
+  const [isSaved, setIsSaved] = useState<boolean>(false);
+  const [savedRecordId, setSavedRecordId] = useState<string | null>(null);
+
   const { mutate: likePost } = useLikePost();
-  const { mutate: savePost } = useSavePost();
-  const { mutate: deleteSavedPost } = useDeletSavedPost();
-  const { data: currentUser } = useGetCurrentUser();
+  const { mutate: savePost, isPending: isSaving } = useSavePost();
+  const { mutate: deleteSavedPost, isPending: isDeleting } = useDeletSavedPost();
 
-  // ✅ FIXED: handle post as string OR object
-  const savedRecord = currentUser?.save?.find((record: any) => {
-    const savedPostId =
-      typeof record.post === "string"
-        ? record.post
-        : record.post?.$id;
+  // Sync saved state from Appwrite whenever currentUser loads or changes
+  useEffect(() => {
+    if (!currentUser?.save) return;
+    const record = currentUser.save.find(
+      (r: any) => r.post?.$id === post.$id
+    );
+    if (record) {
+      setIsSaved(true);
+      setSavedRecordId(record.$id);
+    } else {
+      setIsSaved(false);
+      setSavedRecordId(null);
+    }
+  }, [currentUser, post.$id]);
 
-    return savedPostId === post.$id;
-  });
-
-  const isSaved = !!savedRecord;
-
-  // ✅ DEBUG (remove later if you want)
-  console.log("CURRENT USER SAVE:", currentUser?.save);
-  console.log("POST ID:", post.$id);
-  console.log("SAVED RECORD:", savedRecord);
-
-  // ================= LIKE =================
   const handleLikePost = (e: React.MouseEvent) => {
     e.stopPropagation();
-
     const hasLiked = likes.includes(userId);
-
     const newLikes = hasLiked
       ? likes.filter((id) => id !== userId)
       : [...likes, userId];
-
     setLikes(newLikes);
-
-    likePost({
-      postId: post.$id,
-      likesArray: newLikes,
-    });
+    likePost({ postId: post.$id, likesArray: newLikes });
   };
 
-  // ================= SAVE =================
   const handleSavePost = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
 
-    // 🔥 REMOVE SAVE
-    if (isSaved && savedRecord) {
-      deleteSavedPost(savedRecord.$id, {
+    if (isSaving || isDeleting) return;
+
+    if (isSaved && savedRecordId) {
+      // Optimistic unsave
+      setIsSaved(false);
+      setSavedRecordId(null);
+
+      deleteSavedPost(savedRecordId, {
         onSuccess: () => {
-          queryClient.invalidateQueries({
-            queryKey: [QUERY_KEYS.GET_CURRENT_USER],
-          });
+          queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CURRENT_USER] });
+        },
+        onError: () => {
+          setIsSaved(true);
+          setSavedRecordId(savedRecordId);
         },
       });
-    }
+    } else if (!isSaved) {
+      // Optimistic save
+      setIsSaved(true);
 
-    // 🔥 ADD SAVE
-    else {
       savePost(
+        { postId: post.$id, userId: user.id ?? "" },
         {
-          postId: post.$id,
-          userId: user.$id, // ✅ FIXED
-        },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({
-              queryKey: [QUERY_KEYS.GET_CURRENT_USER],
-            });
+          onSuccess: (data: any) => {
+            setSavedRecordId(data?.$id ?? null);
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CURRENT_USER] });
+          },
+          onError: () => {
+            setIsSaved(false);
+            setSavedRecordId(null);
           },
         }
       );
@@ -103,38 +100,28 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
 
   return (
     <div className="flex justify-between items-center z-20">
-      {/* LIKE */}
+      {/* Like button */}
       <div className="flex gap-2 mr-5">
         <img
-          src={
-            likes.includes(userId)
-              ? "/assets/icons/liked.svg"
-              : "/assets/icons/like.svg"
-          }
+          src={likes.includes(userId) ? "/assets/icons/liked.svg" : "/assets/icons/like.svg"}
           alt="like"
           width={20}
           height={20}
           onClick={handleLikePost}
           className="cursor-pointer"
         />
-        <p className="small-medium lg:base-medium">
-          {likes.length}
-        </p>
+        <p className="small-medium lg:base-medium">{likes.length}</p>
       </div>
 
-      {/* SAVE */}
+      {/* Save button */}
       <div className="flex gap-2">
         <img
-          src={
-            isSaved
-              ? "/assets/icons/saved.svg"
-              : "/assets/icons/save.svg"
-          }
+          src={isSaved ? "/assets/icons/saved.svg" : "/assets/icons/save.svg"}
           alt="save"
           width={20}
           height={20}
           onClick={handleSavePost}
-          className="cursor-pointer"
+          className={`cursor-pointer transition-opacity ${isSaving || isDeleting ? "opacity-50" : "opacity-100"}`}
         />
       </div>
     </div>

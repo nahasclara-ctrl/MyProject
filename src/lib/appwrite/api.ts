@@ -174,32 +174,21 @@ export async function uploadFile(file: File) {
   }
 }
 
+
 // ----------------------------
 // Get File Preview
-// ----------------------------
-export function getFilePreview(
-  fileId: string,
-  width = 2000,
-  height = 2000,
-  gravity:ImageGravity=ImageGravity.Center,
-  quality = 100
-) {
+export function getFilePreview(fileId: string) {
   try {
-    const fileUrl = storage.getFilePreview(
+    const fileUrl = storage.getFileView(
       appwriteConfig.storageId,
-      fileId,
-      width,
-      height,
-      gravity,
-      quality
-    );
+      fileId
+    ).toString();
     return fileUrl;
   } catch (error) {
     console.error(error);
     return null;
   }
 }
-
 // ----------------------------
 // Delete File
 // ----------------------------
@@ -224,7 +213,10 @@ export async function createPost(post: INewPost) {
   if (!uploaded) throw new Error("File upload failed");
 
   // 2️⃣ Get preview URL
-  const fileUrl = await getFilePreview(uploaded.$id);
+  const fileUrl = storage.getFileView(
+    appwriteConfig.storageId,
+    uploaded.$id
+  ).toString();
   if (!fileUrl) {
     await deleteFile(uploaded.$id);
     throw new Error("Failed to get file preview");
