@@ -24,6 +24,7 @@ import RootLayout from "./_root/RootLayout";
 import FullPageLayout from "./_root/layouts/FullPageLayout";
 import { Toaster } from "@/components/ui/toaster";
 import { SavedPostsProvider } from "./context/savedPostsContext";
+import MoodCircles from "./components/MoodCircles";
 
 const App = () => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
           <Route element={<AuthLayout />}>
             <Route path="/sign-in" element={<SigninForm />} />
             <Route path="/sign-up" element={<SignupForm />} />
+            
           </Route>
 
           {/* Private routes with normal layout */}
@@ -50,6 +52,7 @@ const App = () => {
             <Route path="/liked-posts" element={<LikedPosts />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/notifications" element={<Notifications />} />
+            
           </Route>
 
           {/* Full-screen routes */}

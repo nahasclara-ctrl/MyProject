@@ -3,7 +3,19 @@ import {
   useQuery,
   useInfiniteQuery,
   useQueryClient,
+  type UseMutationResult,
+  type UseQueryResult,
 } from "@tanstack/react-query";
+import {
+  joinCircle,
+  sendCircleMessage,
+  getCircleMessages,
+  leaveCircle,
+  type Circle,
+  type Message,
+  getCircleById,
+  type MoodType,
+} from "../appwrite/circles";
 
 import { createPost, createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getInfinitePosts, getPostById, getUserById, getUserPosts, getUsers, likePost, savePost, searchPosts, signInAccount, signOutAccount, updatePost } from "../appwrite/api";
 import type { INewPost, INewUser, IUpdatePost } from "@/types";
@@ -259,6 +271,8 @@ export const useGetFollowingPosts = (currentUser: any) => {
   });
 };
 import { searchUsers } from "../appwrite/api"; // add to existing import line
+import { CONFIG, databases } from "../appwrite/config";
+import { ID, Query } from "appwrite";
  
 export const useSearchUsers = (searchTerm: string) => {
   return useQuery({
@@ -267,4 +281,5 @@ export const useSearchUsers = (searchTerm: string) => {
     enabled: !!searchTerm,
   });
 };
- 
+
+

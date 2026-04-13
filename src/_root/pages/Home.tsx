@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
 import Loader from "@/components/shared/Loader";
 import PostCard from "@/components/shared/PostCard";
+
 import { useGetFollowingPosts } from "@/lib/react-query/queriesAndMutations";
+import MoodModal from "@/components/MoodModal";
 import { useUserContext } from "@/context/AuthContext";
 
 const Home = () => {
@@ -32,35 +34,38 @@ const Home = () => {
   const allPosts = posts?.pages.flatMap((page: any) => page.documents) ?? [];
 
   return (
-    <div className="flex flex-1">
-      <div className="home-container">
-        <div className="home-posts">
-          <h2 className="h3-bold md:h2-bold text-left w-full">Home Feed</h2>
+   
+    <><MoodModal
+      userId={currentUser?.$id}
+      userDisplayName={currentUser?.name} /><div className="flex flex-1">
+        <div className="home-container">
+          <div className="home-posts">
+            <h2 className="h3-bold md:h2-bold text-left w-full">Home Feed</h2>
 
-          {isPostLoading ? (
-            <Loader />
-          ) : allPosts.length === 0 ? (
-            <p className="text-light-4 text-center w-full mt-10">
-              No posts yet. Follow people to see their posts!
-            </p>
-          ) : (
-            <ul className="flex flex-col flex-1 gap-9 w-full">
-              {allPosts.map((post: any) => (
-                <PostCard post={post} key={post.$id} />
-              ))}
-            </ul>
-          )}
-
-          {/* Infinite scroll trigger */}
-          <div ref={bottomRef} className="w-full py-4 flex justify-center">
-            {isFetchingNextPage && <Loader />}
-            {!hasNextPage && allPosts.length > 0 && (
-              <p className="text-light-4 text-sm">You've seen all posts 🎉</p>
+            {isPostLoading ? (
+              <Loader />
+            ) : allPosts.length === 0 ? (
+              <p className="text-light-4 text-center w-full mt-10">
+                No posts yet. Follow people to see their posts!
+              </p>
+            ) : (
+              <ul className="flex flex-col flex-1 gap-9 w-full">
+                {allPosts.map((post: any) => (
+                  <PostCard post={post} key={post.$id} />
+                ))}
+              </ul>
             )}
+
+            {/* Infinite scroll trigger */}
+            <div ref={bottomRef} className="w-full py-4 flex justify-center">
+              {isFetchingNextPage && <Loader />}
+              {!hasNextPage && allPosts.length > 0 && (
+                <p className="text-light-4 text-sm">You've seen all posts 🎉</p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div></>
   );
 };
 

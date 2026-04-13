@@ -1,8 +1,6 @@
-import { ImageGravity } from "appwrite";
-import { ID, Query, Databases, Storage, Account, Avatars } from "appwrite";
+import { ID, Query } from "appwrite";
 import type { INewPost, INewUser, IUpdatePost } from "@/types";
 import { appwriteConfig, account, databases, storage, avatars } from "./config";
-import type { AppwritePost } from "@/types";
 
 
 // Create User Account
