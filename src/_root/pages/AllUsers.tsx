@@ -49,47 +49,82 @@ const AllUsers: React.FC = () => {
     following: (doc as any).following || [],
   }));
 
+  // ✅ FIXED: Now handles both FOLLOW and UNFOLLOW with toggle logic
   const handleFollow = async (followedUserId: string) => {
     if (!currentUser || !setUser) return;
 
     setLoadingFollow(followedUserId);
     try {
-      // 1️⃣ Update currentUser following immediately (context)
-      const updatedFollowing = [...(currentUser.following || []), followedUserId];
-      setUser({ ...currentUser, following: updatedFollowing });
+      const isCurrentlyFollowing = currentUser.following?.includes(followedUserId);
+      
+      if (isCurrentlyFollowing) {
+        // ✅ UNFOLLOW LOGIC
+        const updatedFollowing = (currentUser.following || []).filter(
+          (id) => id !== followedUserId
+        );
+        setUser({ ...currentUser, following: updatedFollowing });
 
-      // 2️⃣ Update database for currentUser
-      await databases.updateDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.usersCollectionId,
-        currentUser.$id,
-        { following: updatedFollowing }
-      );
-
-      // 3️⃣ Update database for the followed user
-      const followedUser = userList.find((u) => u.$id === followedUserId);
-      if (followedUser) {
-        const updatedFollowers = [...(followedUser.followers || []), currentUser.$id];
+        // Update currentUser in database
         await databases.updateDocument(
           appwriteConfig.databaseId,
           appwriteConfig.usersCollectionId,
-          followedUserId,
-          { followers: updatedFollowers }
+          currentUser.$id,
+          { following: updatedFollowing }
         );
 
-        // Optional: update local object so the followers count updates if needed elsewhere
-        followedUser.followers = updatedFollowers;
+        // Update the followed user's followers list
+        const followedUser = userList.find((u) => u.$id === followedUserId);
+        if (followedUser) {
+          const updatedFollowers = (followedUser.followers || []).filter(
+            (id) => id !== currentUser.$id
+          );
+          await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.usersCollectionId,
+            followedUserId,
+            { followers: updatedFollowers }
+          );
+          followedUser.followers = updatedFollowers;
+        }
+      } else {
+        // ✅ FOLLOW LOGIC (original)
+        const updatedFollowing = [...(currentUser.following || []), followedUserId];
+        setUser({ ...currentUser, following: updatedFollowing });
+
+        // Update currentUser in database
+        await databases.updateDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.usersCollectionId,
+          currentUser.$id,
+          { following: updatedFollowing }
+        );
+
+        // Update the followed user's followers list
+        const followedUser = userList.find((u) => u.$id === followedUserId);
+        if (followedUser) {
+          const updatedFollowers = [...(followedUser.followers || []), currentUser.$id];
+          await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.usersCollectionId,
+            followedUserId,
+            { followers: updatedFollowers }
+          );
+          followedUser.followers = updatedFollowers;
+        }
       }
 
-      // 4️⃣ Refetch React Query to keep everything in sync
+      //  FIXED: Invalidate all relevant caches
       queryClient.invalidateQueries({ queryKey: ["getUsers"] });
       queryClient.invalidateQueries({ queryKey: ["getUserById", currentUser.$id] });
       queryClient.invalidateQueries({ queryKey: ["getUserById", followedUserId] });
+      queryClient.invalidateQueries({ queryKey: ["getUserPosts", followedUserId] });
+      queryClient.invalidateQueries({ queryKey: ["followers", followedUserId] });
+      queryClient.invalidateQueries({ queryKey: ["following", followedUserId] });
 
-      // 5️⃣ Optional: navigate to followed user's profile
+      // Optional: Navigate to followed user's profile
       navigate(`/profile/${followedUserId}`);
     } catch (error) {
-      console.error("Error following user:", error);
+      console.error("Error toggling follow:", error);
     } finally {
       setLoadingFollow(null);
     }
@@ -107,7 +142,7 @@ const AllUsers: React.FC = () => {
             return (
               <li key={person.$id} className="flex-1 min-w-[200px] w-full">
                 {/* Profile Link */}
-                <Link to={`/profile/${person.$id}`} className="user-card">
+                <Link to={`/profile/${person.$id}`} >
                   <img
                     src={person.imageUrl || "/assets/icons/profile-placeholder.svg"}
                     alt={person.name}
@@ -119,19 +154,19 @@ const AllUsers: React.FC = () => {
                   </div>
                 </Link>
 
-                {/* Follow Button */}
+                {/* ✅ FIXED: Follow/Unfollow Button - Now enabled always */}
                 {currentUser?.$id !== person.$id && (
                   <button
-                    className={`shad-button_primary px-5 py-2 text-sm mt-2 w-full ${
-                      isFollowing ? "bg-gray-400" : ""
+                    className={`shad-button_primary px-5 py-2 text-sm mt-2 w-full transition-colors ${
+                      isFollowing ? "bg-red-500 hover:bg-red-600" : "hover:opacity-90"
                     }`}
                     onClick={() => handleFollow(person.$id)}
-                    disabled={loadingFollow === person.$id || isFollowing}
+                    disabled={loadingFollow === person.$id}  // ✅ Only disabled while loading
                   >
                     {loadingFollow === person.$id
-                      ? "Following..."
+                      ? "Loading..."
                       : isFollowing
-                      ? "Following"
+                      ? "Following" //instead of unfollow i put following because when the user click the button it will show following and if the user click again it will show follow because the user will unfollow the person
                       : "Follow"}
                   </button>
                 )}

@@ -9,6 +9,7 @@ export const appwriteConfig = {
   savesCollectionId:import.meta.env.VITE_APPWRITE_SAVES_COLLECTION_ID,
   messagesCollectionID:import.meta.env.VITE_APPWRITE_messages_COLLECTION_ID,
   storageId: import.meta.env.VITE_APPWRITE_STORAGE_ID, //zabatet ho mn public next la vute 
+  followRequestsCollectionId: import.meta.env.VITE_APPWRITE_FOLLOW_REQUESTS_COLLECTION_ID,
 };
 
 const client = new Client();

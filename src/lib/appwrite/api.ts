@@ -574,3 +574,19 @@ export async function searchUsers(searchTerm: string) {
     throw error;
   }
 }
+export async function getUsersByIds(ids: string[]) {
+  try {
+    if (!ids || ids.length === 0) return [];
+
+    const res = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.usersCollectionId,
+      [Query.equal("$id", ids)]
+    );
+
+    return res.documents; //  must be documents
+  } catch (error) {
+    console.error("getUsersByIds failed:", error);
+    return [];
+  }
+}

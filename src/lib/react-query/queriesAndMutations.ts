@@ -111,7 +111,7 @@ export const useSavePost = () =>{
 
 export const useGetSavedPosts = (userId: string) => {
   return useQuery({
-    queryKey: ["savedPosts", userId],
+    queryKey: [QUERY_KEYS.GET_SAVED_POSTS, userId],
     queryFn: () => getSavedPosts(userId),
     enabled: !!userId,
   });

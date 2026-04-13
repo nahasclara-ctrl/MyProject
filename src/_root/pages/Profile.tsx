@@ -1,17 +1,34 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useGetUserById, useGetUserPosts } from "@/lib/react-query/queriesAndMutations";
 import { useUserContext } from "@/context/AuthContext";
-import { Loader } from "lucide-react";
+import { Loader, X } from "lucide-react";
 import { useState } from "react";
 import { databases, appwriteConfig } from "@/lib/appwrite/config";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getUsersByIds } from "@/lib/appwrite/api";
 
 const Profile = () => {
   const { id: profileId } = useParams<{ id: string }>();
   const { user: currentUser, setUser } = useUserContext();
   const navigate = useNavigate();
-
+  const queryClient = useQueryClient();
+  
   const { data: user, isLoading: isUserLoading } = useGetUserById(profileId || "");
   const { data: userPosts, isLoading: isPostsLoading } = useGetUserPosts(profileId || "");
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
+
+  const { data: followers, isLoading: isFollowersLoading } = useQuery({
+    queryKey: ["followers", user?.followers],
+    queryFn: () => getUsersByIds(user?.followers || []),
+    enabled: !!user && showFollowers,
+  });
+
+  const { data: following, isLoading: isFollowingLoading } = useQuery({
+    queryKey: ["following", user?.following],
+    queryFn: () => getUsersByIds(user?.following || []),
+    enabled: !!user && showFollowing,
+  });
 
   const [loadingFollow, setLoadingFollow] = useState(false);
 
@@ -33,7 +50,7 @@ const Profile = () => {
 
   const isOwnProfile = currentUser.$id === user.$id;
   const isFollowing = currentUser.following?.includes(user.$id);
-
+ 
   const handleFollow = async () => {
     if (!currentUser || !setUser) return;
 
@@ -58,6 +75,12 @@ const Profile = () => {
       );
 
       user.followers = updatedFollowers;
+
+      queryClient.invalidateQueries({ queryKey: ["followers", updatedFollowers] });
+      queryClient.invalidateQueries({ queryKey: ["following", currentUser?.following] });
+      queryClient.invalidateQueries({ queryKey: ["getUserById", user?.$id] });
+      queryClient.invalidateQueries({ queryKey: ["getUserById", currentUser?.$id] });
+
     } catch (error) {
       console.error("Error following user:", error);
     } finally {
@@ -86,8 +109,22 @@ const Profile = () => {
           {/* Stats */}
           <div className="flex flex-wrap gap-8 justify-center xl:justify-start items-center mb-5">
             <StatBlock value={userPosts?.documents.length ?? 0} label="Posts" />
-            <StatBlock value={user.followers?.length ?? 0} label="Followers" />
-            <StatBlock value={currentUser.following?.length ?? 0} label="Following" />
+            
+            {/* ✅ FIXED: Wrapped in button to make it clickable */}
+            <button
+              onClick={() => setShowFollowers(!showFollowers)}
+              className="cursor-pointer hover:opacity-75 transition-opacity"
+            >
+              <StatBlock value={user.followers?.length ?? 0} label="Followers" />
+            </button>
+
+            {/* ✅ FIXED: Wrapped in button to make it clickable */}
+            <button
+              onClick={() => setShowFollowing(!showFollowing)}
+              className="cursor-pointer hover:opacity-75 transition-opacity"
+            >
+              <StatBlock value={user.following?.length ?? 0} label="Following" />
+            </button>
           </div>
 
           {/* Bio */}
@@ -159,6 +196,102 @@ const Profile = () => {
           </ul>
         )}
       </div>
+
+      {/* ✅ FIXED: Followers Modal */}
+      {showFollowers && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-96 overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Followers</h3>
+              <button
+                onClick={() => setShowFollowers(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {isFollowersLoading ? (
+              <div className="flex justify-center py-4">
+                <Loader className="animate-spin" />
+              </div>
+            ) : followers && followers.length > 0 ? (
+              <div className="space-y-2">
+                {followers.map((u: any) => (
+                  <div
+                    key={u.$id}
+                    onClick={() => {
+                      navigate(`/profile/${u.$id}`);
+                      setShowFollowers(false);
+                    }}
+                    className="flex items-center gap-3 p-2 rounded hover:bg-gray-100 cursor-pointer"
+                  >
+                    <img
+                      src={u.imageUrl || "/assets/icons/profile-placeholder.svg"}
+                      alt={u.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div>
+                      <p className="font-semibold">{u.name}</p>
+                      <p className="text-sm text-gray-600">@{u.username}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No followers yet</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ✅ FIXED: Following Modal */}
+      {showFollowing && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-96 overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Following</h3>
+              <button
+                onClick={() => setShowFollowing(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {isFollowingLoading ? (
+              <div className="flex justify-center py-4">
+                <Loader className="animate-spin" />
+              </div>
+            ) : following && following.length > 0 ? (
+              <div className="space-y-2">
+                {following.map((u: any) => (
+                  <div
+                    key={u.$id}
+                    onClick={() => {
+                      navigate(`/profile/${u.$id}`);
+                      setShowFollowing(false);
+                    }}
+                    className="flex items-center gap-3 p-2 rounded hover:bg-gray-100 cursor-pointer"
+                  >
+                    <img
+                      src={u.imageUrl || "/assets/icons/profile-placeholder.svg"}
+                      alt={u.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div>
+                      <p className="font-semibold">{u.name}</p>
+                      <p className="text-sm text-gray-600">@{u.username}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">Not following anyone yet</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
