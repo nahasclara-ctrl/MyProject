@@ -9,7 +9,7 @@ export interface Circle {
   $id: string;
   mood: string;
   members: string[];
-  maxMembers: number;
+  maxMembers?: number;
   currentMembers: number;
   isActive: boolean;
   createdAt: string;
@@ -106,8 +106,8 @@ export async function joinCircle(userId: string, mood: MoodType): Promise<Circle
       [
         Query.equal("mood", mood),
         Query.equal("isActive", true),
-        Query.lessThan("currentMembers", 5),
-        Query.orderDesc("$createdAt"),
+                                        //Query.lessThan("currentMembers", 5),
+        Query.orderAsc("$createdAt"),
         Query.limit(10),
       ]
     );
@@ -116,7 +116,7 @@ export async function joinCircle(userId: string, mood: MoodType): Promise<Circle
 
     if (res.documents.length > 0) {
       const randomIndex = Math.floor(Math.random() * res.documents.length);
-      const existingCircle = res.documents[randomIndex] as unknown as Circle;
+      const existingCircle = res.documents[0] as unknown as Circle;
 
       console.log(`✅ Found existing circle: ${existingCircle.$id}`);
 
@@ -146,7 +146,7 @@ export async function joinCircle(userId: string, mood: MoodType): Promise<Circle
         {
           mood,
           members: [userId],
-          maxMembers: 5,
+          maxMembers: 0, // 0 = unlimited
           currentMembers: 1,
           isActive: true,
           createdAt: new Date().toISOString(),

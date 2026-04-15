@@ -225,7 +225,7 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
           <div>
             <h3 className="font-bold text-lg capitalize">{currentCircle.mood}</h3>
             <p className="text-sm text-gray-600">
-              {currentCircle.currentMembers}/{currentCircle.maxMembers} people
+              {currentCircle.currentMembers} people in circle
             </p>
           </div>
         </div>

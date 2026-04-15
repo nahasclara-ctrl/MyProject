@@ -18,9 +18,22 @@ interface Props {
 
 export default function MoodModal({ userId, userDisplayName }: Props) {
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
+
+  // ✅ Only show if not already seen this session
   const [open, setOpen] = useState(true);
 
-  // if closed → don't show popup
+  // ✅ Close without picking a mood
+  const handleClose = () => {
+    sessionStorage.setItem("moodModalSeen", "true");
+    setOpen(false);
+  };
+
+  // ✅ Pick a mood and mark as seen
+  const handleMoodSelect = (mood: MoodType) => {
+    sessionStorage.setItem("moodModalSeen", "true");
+    setSelectedMood(mood);
+  };
+
   if (!open) return null;
 
   if (selectedMood) {
@@ -35,30 +48,27 @@ export default function MoodModal({ userId, userDisplayName }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-
       <div className="bg-white p-6 rounded-xl w-[350px] text-center shadow-xl relative">
 
         {/* ❌ CLOSE BUTTON */}
         <button
-          onClick={() => setOpen(false)}
+          onClick={handleClose}
           className="absolute top-2 right-3 text-gray-500 hover:text-black text-xl"
         >
           ✕
         </button>
 
-        <h2 className="text-xl font-bold mb-2">
-          Pick your mood 🎭
-        </h2>
+        <h2 className="text-xl font-bold mb-2">Pick your mood 🎭</h2>
 
         <p className="text-gray-500 mb-4 text-sm">
-          You’ll join people with the same vibe
+          You'll join people with the same vibe
         </p>
 
         <div className="grid grid-cols-2 gap-3">
           {Object.entries(MOODS).map(([key, mood]) => (
             <button
               key={key}
-              onClick={() => setSelectedMood(key as MoodType)}
+              onClick={() => handleMoodSelect(key as MoodType)}
               className="p-3 rounded-lg text-white font-semibold flex flex-col items-center gap-1"
               style={{ backgroundColor: mood.color }}
             >
