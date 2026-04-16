@@ -68,4 +68,21 @@ export const bottombarLinks =[
         route:"/saved",     
         label:"Saved",
     },      
+    {
+        imgURL:"/assets/icons/gallery-add.svg",
+        route:"/create-post",
+        label:"Create",
+    },
+    {
+        imgURL:"/assets/images/mood.png",
+        route:"/mood",
+        label :"mood",
+    },
+    {   
+    imgURL: "/assets/icons/settings.svg",
+    route: "/settings",
+    label: "Settings",
+  },
+
+
 ]

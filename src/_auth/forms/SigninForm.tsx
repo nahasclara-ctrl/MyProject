@@ -18,124 +18,128 @@ import * as z from "zod";
 import "../../globals.css";
 import Loader from "@/components/shared/Loader";
 
-import {SigninValidation } from "@/lib/validation";
+import { SigninValidation } from "@/lib/validation";
 import { Link, useNavigate } from "react-router-dom";
 
-import {
-  useSignInAccount,
-} from "@/lib/react-query/queriesAndMutations";
+import { useSignInAccount } from "@/lib/react-query/queriesAndMutations";
 import { useUserContext } from "@/context/AuthContext";
 
 // ----------------------
-// Form Type
+// Theme
+// ----------------------
+
+const T = {
+  primary: "#4f9f75",
+  primarySoft: "#7bbf9a",
+  text: "#2f6e4f",
+  muted: "#7bbf9a",
+  border: "#d6ebe0",
+};
+
 // ----------------------
 
 type FormValues = z.infer<typeof SigninValidation>;
 
 const SigninForm = () => {
   const { toast } = useToast();
-  const { checkAuthUser,isLoading:isUserLoading}=useUserContext();
+  const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
   const navigate = useNavigate();
 
-
-  // React Query Mutations
-  
-
-   
-
-  const { mutateAsync: signInAccount } =
-    useSignInAccount();
-
-  // ----------------------
-  // React Hook Form
-  // ----------------------
+  const { mutateAsync: signInAccount } = useSignInAccount();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(SigninValidation),
     defaultValues: {
       email: "",
       password: "",
-    
     },
   });
 
-  // ----------------------
-  // Submit Handler
-  // ----------------------
-
   async function onSubmit(values: FormValues) {
-   
-    try{
-      // Auto login after signup
+    try {
       const session = await signInAccount({
         email: values.email,
         password: values.password,
       });
-      console.log("1.SESSION:", session);//add it to see where the problem
-       
+
       if (!session) {
         return toast({
           title: "Login after signup failed",
         });
       }
-      const isLoggedIn =await checkAuthUser();
-      console.log("2. IS LOGGED IN:", isLoggedIn);  // ← add here
-      console.log("3. COOKIE:", localStorage.getItem("cookieFallback"));  // ← add here
 
+      const isLoggedIn = await checkAuthUser();
 
-      if(isLoggedIn){
-        
+      if (isLoggedIn) {
         form.reset();
         toast({ title: "Login successful!" });
-      
         navigate("/");
-       
-      }else{
-        toast({ title:'Login failed. Please try again.'})
-
+      } else {
+        toast({ title: "Login failed. Please try again." });
       }
-      
-    
     } catch (error) {
-      console.log("Error:",error);
+      console.log("Error:", error);
     }
   }
 
-  // ----------------------
-  // UI
-  // ----------------------
-
   return (
     <Form {...form}>
-      <div className="sm:w-420 flex-center flex-col">
-        <form 
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="sm:w-420 flex-center flex-col"
+      <div
+        className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
+        style={{
+          background: `
+            radial-gradient(circle at 20% 20%, #7bbf9a55 0%, transparent 40%),
+            radial-gradient(circle at 80% 80%, #4f9f7555 0%, transparent 40%),
+            linear-gradient(135deg, #1e4d3a 0%, #2f6e4f 50%, #4f9f75 100%)
+          `,
+        }}
+      >
+        {/* Card */}
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="relative w-full max-w-md flex flex-col gap-6 p-8 rounded-3xl"
+          style={{
+            backgroundColor: "rgba(255,255,255,0.12)",
+            backdropFilter: "blur(18px)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            boxShadow: "0 10px 50px rgba(0,0,0,0.25)",
+          }}
         >
-        <img
-          src="/assets/images/log0.png"
-          alt="Logo"
-          className="mx-auto w-32"
-        />
-       
-        <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">
-          Log in to your account
-        </h2>
+          {/* Logo */}
+          <img
+            src="/assets/images/logo1.jpeg"
+            alt="Logo"
+            className="mx-auto w-24 h-24 object-cover rounded-full shadow-lg"
+          />
 
-        <p className="text-light-3 small-medium md:base-regular mt-2">
-          Welcome back! Please enter your details to log in.
-        </p>
+          {/* Title */}
+          <h2 className="text-center text-2xl font-bold text-white">
+            Log in to your account
+          </h2>
 
-        
+          <p className="text-center text-sm text-white/70">
+            Welcome back! Please enter your details to log in.
+          </p>
+
           {/* Email */}
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email / Phone</FormLabel>
+                <FormLabel className="text-white/80">
+                  Email / Phone
+                </FormLabel>
                 <FormControl>
-                  <Input type="email" {...field} />
+                  <Input
+                    type="email"
+                    {...field}
+                    className="rounded-xl px-4 py-3 text-white placeholder:text-white/50"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.1)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -148,25 +152,38 @@ const SigninForm = () => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-white/80">
+                  Password
+                </FormLabel>
                 <FormControl>
-                  <Input type="password" {...field} />
+                  <Input
+                    type="password"
+                    {...field}
+                    className="rounded-xl px-4 py-3 text-white placeholder:text-white/50"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.1)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-        
-
-          {/* Submit Button */}
+          {/* Button */}
           <Button
             type="submit"
-            className="shad-button_primary"
-            disabled={isUserLoading }
+            disabled={isUserLoading}
+            className="rounded-xl py-3 font-semibold transition-all"
+            style={{
+              background: `linear-gradient(135deg, ${T.primary}, ${T.primarySoft})`,
+              color: "#fff",
+              boxShadow: "0 6px 25px rgba(0,0,0,0.3)",
+            }}
           >
-            {isUserLoading  ? (
-              <div className="flex-center gap-2">
+            {isUserLoading ? (
+              <div className="flex items-center justify-center gap-2">
                 <Loader />
                 Loading...
               </div>
@@ -175,16 +192,17 @@ const SigninForm = () => {
             )}
           </Button>
 
-          <p className="text-small-regular text-light-70 text-center mt-2">
-           Don't have an account?
+          {/* Footer */}
+          <p className="text-center text-sm text-white/70">
+            Don't have an account?
             <Link
               to="/sign-up"
-              className="text-primary-500 text-small-semibold ml-1"
+              className="ml-1 font-semibold text-white"
             >
-             Sign up
+              Sign up
             </Link>
           </p>
-          </form>
+        </form>
       </div>
     </Form>
   );

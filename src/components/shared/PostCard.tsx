@@ -7,66 +7,117 @@ import type { Post } from "@/types";
 type PostCardProps = { post: Post };
 
 const PostCard = ({ post }: PostCardProps) => {
-  
   const { user } = useUserContext();
 
   return (
-    <div className="post-card border rounded-lg shadow-sm bg-white p-4 flex flex-col gap-3">
+    <div className="
+      border border-[#eefaf5]
+      rounded-lg
+      shadow-sm
+      bg-white
+      p-4
+      flex flex-col gap-3
+    ">
+
       {/* Header */}
       <div className="flex justify-between items-center">
+
         <div className="flex items-center gap-3">
+
           <Link to={`/profile/${post.creator?.$id || ""}`}>
             <img
               src={post.creator?.imageUrl || "/assets/icons/profile-placeholder.svg"}
-              alt={post.creator?.name || "User"}
-              className="rounded-full w-12 h-12"
+              className="
+                rounded-full w-12 h-12
+                border border-[#eefaf5]
+              "
             />
           </Link>
+
           <div className="flex flex-col">
-            <p className="base-medium">{post.creator?.name || "Unknown"}</p>
-            <div className="flex gap-2 text-light-3">
-              <p>{post.$createdAt ? formatDate(post.$createdAt) : ""}</p>
-              {post.location && <p>{post.location}</p>}
+
+            {/* 👤 NAME (NO BLACK) */}
+            <p className="base-medium text-[#4b7f73] font-semibold">
+              {post.creator?.name || "Unknown"}
+            </p>
+
+            {/* 🌿 META */}
+            <div className="flex gap-2 text-sm text-[#9ccfc3]">
+
+              <p>
+                {post.$createdAt ? formatDate(post.$createdAt) : ""}
+              </p>
+
+              {post.location && (
+                <p className="text-[#7fd1c2]">
+                  {post.location}
+                </p>
+              )}
+
             </div>
           </div>
+
         </div>
 
-        {/* Edit Button */}
+        {/* Edit */}
         {user?.id === post.creator?.$id && (
           <Link to={`/update-post/${post.$id}`}>
-            <img src="/assets/icons/edit.svg" alt="edit" width={20} height={20} />
+            <img
+              src="/assets/icons/edit.svg"
+              width={20}
+              height={20}
+              style={{ opacity: 0.5 }}
+            />
           </Link>
         )}
+
       </div>
 
-      {/* Caption & Tags */}
+      {/* Caption */}
       <Link to={`/posts/${post.$id}`} className="block">
+
         <div className="py-3">
-          <p>{post.caption}</p>
+
+          {/* 🧠 TEXT (NO BLACK) */}
+          <p className="text-[#6faea2] leading-relaxed">
+            {post.caption}
+          </p>
+
           {post.tags && post.tags.length > 0 && (
             <ul className="flex gap-2 mt-2 flex-wrap">
+
               {post.tags.map(tag => (
-                <li key={tag} className="text-light-3 text-sm">
+                <li
+                  key={tag}
+                  className="text-[#86d6c6] text-sm"
+                >
                   #{tag}
                 </li>
               ))}
+
             </ul>
           )}
+
         </div>
 
-        {/* Image */}
         {post.imageUrl && (
-          <img src={post.imageUrl} alt="post image" className="post-card_img w-full rounded-lg"
-             />
-        
+          <img
+            src={post.imageUrl}
+            className="
+              w-full
+              rounded-lg
+              border border-[#f3fbf8]
+            "
+          />
         )}
+
       </Link>
 
-      {/* Likes / Saves */}
-
+      {/* Stats */}
       <PostStats post={post} userId={user?.id || ""} />
+
     </div>
-  )
+  );
 };
 
 export default PostCard;

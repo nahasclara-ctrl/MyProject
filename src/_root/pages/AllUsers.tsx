@@ -25,16 +25,18 @@ const AllUsers: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex-center w-full h-full">
-        <Loader className="animate-spin" />
+      <div className="flex-center w-full h-full" style={{ background: "#f6fbf8" }}>
+        <Loader className="animate-spin text-[#4f9f75]" />
       </div>
     );
   }
 
   if (isError || !users?.documents) {
     return (
-      <div className="flex-center w-full h-full">
-        <p className="text-light-4">Something went wrong loading users.</p>
+      <div className="flex-center w-full h-full" style={{ background: "#f6fbf8" }}>
+        <p style={{ color: "#7bbf9a" }}>
+          Something went wrong loading users.
+        </p>
       </div>
     );
   }
@@ -49,22 +51,20 @@ const AllUsers: React.FC = () => {
     following: (doc as any).following || [],
   }));
 
-  // ✅ FIXED: Now handles both FOLLOW and UNFOLLOW with toggle logic
   const handleFollow = async (followedUserId: string) => {
     if (!currentUser || !setUser) return;
 
     setLoadingFollow(followedUserId);
     try {
       const isCurrentlyFollowing = currentUser.following?.includes(followedUserId);
-      
+
       if (isCurrentlyFollowing) {
-        // ✅ UNFOLLOW LOGIC
         const updatedFollowing = (currentUser.following || []).filter(
           (id) => id !== followedUserId
         );
+
         setUser({ ...currentUser, following: updatedFollowing });
 
-        // Update currentUser in database
         await databases.updateDocument(
           appwriteConfig.databaseId,
           appwriteConfig.usersCollectionId,
@@ -72,26 +72,28 @@ const AllUsers: React.FC = () => {
           { following: updatedFollowing }
         );
 
-        // Update the followed user's followers list
         const followedUser = userList.find((u) => u.$id === followedUserId);
+
         if (followedUser) {
           const updatedFollowers = (followedUser.followers || []).filter(
             (id) => id !== currentUser.$id
           );
+
           await databases.updateDocument(
             appwriteConfig.databaseId,
             appwriteConfig.usersCollectionId,
             followedUserId,
             { followers: updatedFollowers }
           );
+
           followedUser.followers = updatedFollowers;
         }
+
       } else {
-        // ✅ FOLLOW LOGIC (original)
         const updatedFollowing = [...(currentUser.following || []), followedUserId];
+
         setUser({ ...currentUser, following: updatedFollowing });
 
-        // Update currentUser in database
         await databases.updateDocument(
           appwriteConfig.databaseId,
           appwriteConfig.usersCollectionId,
@@ -99,29 +101,27 @@ const AllUsers: React.FC = () => {
           { following: updatedFollowing }
         );
 
-        // Update the followed user's followers list
         const followedUser = userList.find((u) => u.$id === followedUserId);
+
         if (followedUser) {
           const updatedFollowers = [...(followedUser.followers || []), currentUser.$id];
+
           await databases.updateDocument(
             appwriteConfig.databaseId,
             appwriteConfig.usersCollectionId,
             followedUserId,
             { followers: updatedFollowers }
           );
+
           followedUser.followers = updatedFollowers;
         }
       }
 
-      //  FIXED: Invalidate all relevant caches
       queryClient.invalidateQueries({ queryKey: ["getUsers"] });
       queryClient.invalidateQueries({ queryKey: ["getUserById", currentUser.$id] });
       queryClient.invalidateQueries({ queryKey: ["getUserById", followedUserId] });
       queryClient.invalidateQueries({ queryKey: ["getUserPosts", followedUserId] });
-      queryClient.invalidateQueries({ queryKey: ["followers", followedUserId] });
-      queryClient.invalidateQueries({ queryKey: ["following", followedUserId] });
 
-      // Optional: Navigate to followed user's profile
       navigate(`/profile/${followedUserId}`);
     } catch (error) {
       console.error("Error toggling follow:", error);
@@ -131,51 +131,113 @@ const AllUsers: React.FC = () => {
   };
 
   return (
-    <div className="common-container">
+    <div
+      className="common-container"
+      style={{
+        background: "linear-gradient(180deg, #ffffff 0%, #f4faf7 100%)",
+        minHeight: "100vh",
+      }}
+    >
       <div className="user-container">
-        <h2 className="h3-bold md:h2-bold text-left w-full">All Users</h2>
 
-        <ul className="user-grid">
+        <h2
+          className="h3-bold md:h2-bold text-left w-full"
+          style={{ color: "#2f6e4f" }}
+        >
+          Discover People
+        </h2>
+
+        <ul className="user-grid gap-6">
           {userList.map((person) => {
             const isFollowing = currentUser?.following?.includes(person.$id);
 
             return (
               <li key={person.$id} className="flex-1 min-w-[200px] w-full">
-                {/* Profile Link */}
-                <Link to={`/profile/${person.$id}`} >
-                  <img
-                    src={person.imageUrl || "/assets/icons/profile-placeholder.svg"}
-                    alt={person.name}
-                    className="rounded-full w-14 h-14 object-cover"
-                  />
-                  <div className="flex-center flex-col gap-1">
-                    <p className="base-medium text-light-1 text-center line-clamp-1">{person.name}</p>
-                    <p className="small-regular text-light-3 text-center line-clamp-1">@{person.username}</p>
-                  </div>
-                </Link>
 
-                {/* ✅ FIXED: Follow/Unfollow Button - Now enabled always */}
-               {currentUser?.$id !== person.$id && (
-  <button
-    className={`px-5 py-2 text-sm mt-2 w-full transition-colors rounded-lg font-semibold ${
-      isFollowing
-        ? "bg-red-500 hover:bg-red-600 text-white"
-        : "bg-blue-500 hover:bg-blue-600 text-white"
-    }`}
-    onClick={() => handleFollow(person.$id)}
-    disabled={loadingFollow === person.$id}
-  >
-    {loadingFollow === person.$id
-      ? "Loading..."
-      : isFollowing
-      ? "Following"
-      : "Follow"}
-  </button>
-)}
+                {/* CARD */}
+                <div
+                  className="transition-all duration-300 hover:shadow-lg"
+                  style={{
+                    background: "#ffffffcc",
+                    backdropFilter: "blur(10px)",
+                    border: "1px solid #d6ebe0",
+                    borderRadius: "18px",
+                    padding: "14px",
+                    boxShadow: "0 6px 20px rgba(79,159,117,0.08)",
+                  }}
+                >
+
+                  {/* PROFILE */}
+                  <Link to={`/profile/${person.$id}`}>
+
+                    <img
+                      src={person.imageUrl || "/assets/icons/profile-placeholder.svg"}
+                      alt={person.name}
+                      className="rounded-full w-16 h-16 object-cover mx-auto"
+                      style={{
+                        border: "2px solid #b7dcc8",
+                        boxShadow: "0 0 0 4px #f6fbf8",
+                      }}
+                    />
+
+                    <div className="flex-center flex-col gap-1 mt-2">
+
+                      <p
+                        className="base-medium text-center line-clamp-1"
+                        style={{ color: "#2f6e4f", fontWeight: 600 }}
+                      >
+                        {person.name}
+                      </p>
+
+                      <p
+                        className="small-regular text-center line-clamp-1"
+                        style={{ color: "#7bbf9a" }}
+                      >
+                        @{person.username}
+                      </p>
+
+                    </div>
+
+                  </Link>
+
+                  {/* FOLLOW BUTTON */}
+                  {currentUser?.$id !== person.$id && (
+                    <button
+                      onClick={() => handleFollow(person.$id)}
+                      disabled={loadingFollow === person.$id}
+                      style={{
+                        width: "100%",
+                        marginTop: "12px",
+                        padding: "9px",
+                        borderRadius: "12px",
+                        border: "1px solid #d6ebe0",
+                        cursor: "pointer",
+                        fontWeight: 600,
+                        transition: "all 0.25s ease",
+                        background: isFollowing
+                          ? "#4f9f75"
+                          : "linear-gradient(135deg, #4f9f75, #7bbf9a)",
+                        color: "#fff",
+                        opacity: loadingFollow === person.$id ? 0.6 : 1,
+                        boxShadow: isFollowing
+                          ? "none"
+                          : "0 6px 14px rgba(79,159,117,0.25)",
+                      }}
+                    >
+                      {loadingFollow === person.$id
+                        ? "Loading..."
+                        : isFollowing
+                        ? "Following"
+                        : "Follow"}
+                    </button>
+                  )}
+
+                </div>
               </li>
             );
           })}
         </ul>
+
       </div>
     </div>
   );

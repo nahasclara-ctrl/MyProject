@@ -97,7 +97,7 @@ const SignupForm = () => {
     <Form {...form}>
       <div className="sm:max-w-[420px] w-full> ">
         <img
-          src="/assets/images/log0.png"
+          src="/assets/images/logo1.png"
           alt="Logo"
           className="mx-auto w-32"
         />

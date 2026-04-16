@@ -1,326 +1,204 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { useGetUserById, useGetUserPosts } from "@/lib/react-query/queriesAndMutations";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import {
+  useGetUserById,
+  useGetUserPosts,
+} from "@/lib/react-query/queriesAndMutations";
 import { useUserContext } from "@/context/AuthContext";
-import { Loader, X } from "lucide-react";
+import { Loader } from "lucide-react";
 import { useState } from "react";
-import { databases, appwriteConfig } from "@/lib/appwrite/config";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getUsersByIds } from "@/lib/appwrite/api";
 
-const Profile = () => {
-  const { id: profileId } = useParams<{ id: string }>();
-  const { user: currentUser, setUser } = useUserContext();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  
-  const { data: user, isLoading: isUserLoading } = useGetUserById(profileId || "");
-  const { data: userPosts, isLoading: isPostsLoading } = useGetUserPosts(profileId || "");
-  const [showFollowers, setShowFollowers] = useState(false);
-  const [showFollowing, setShowFollowing] = useState(false);
+const P = {
+  50: "#f6fbf8",
+  100: "#eaf5ef",
+  200: "#d6ebe0",
+  300: "#b7dcc8",
+  400: "#7bbf9a",
+  500: "#4f9f75",
+  600: "#3f8a63",
+  700: "#2f6e4f",
+};
 
-  const { data: followers, isLoading: isFollowersLoading } = useQuery({
+const Profile = () => {
+  const { id } = useParams();
+  const { user: currentUser } = useUserContext();
+  const navigate = useNavigate();
+
+  const { data: user, isLoading } = useGetUserById(id || "");
+  const { data: posts, isLoading: postsLoading } = useGetUserPosts(id || "");
+
+  const [open, setOpen] = useState<"followers" | "following" | null>(null);
+
+  const { data: followers } = useQuery({
     queryKey: ["followers", user?.followers],
     queryFn: () => getUsersByIds(user?.followers || []),
-    enabled: !!user && showFollowers,
+    enabled: !!user && open === "followers",
   });
 
-  const { data: following, isLoading: isFollowingLoading } = useQuery({
+  const { data: following } = useQuery({
     queryKey: ["following", user?.following],
     queryFn: () => getUsersByIds(user?.following || []),
-    enabled: !!user && showFollowing,
+    enabled: !!user && open === "following",
   });
 
-  const [loadingFollow, setLoadingFollow] = useState(false);
-
-  if (isUserLoading) {
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center w-full h-full">
+      <div className="h-screen flex items-center justify-center" style={{ background: P[50] }}>
         <Loader className="animate-spin" />
       </div>
     );
   }
 
-  if (!user) {
-    return (
-      <div className="flex justify-center items-center w-full h-full">
-        <p className="text-light-4">User not found.</p>
-      </div>
-    );
-  }
+  if (!user) return null;
 
-  const isOwnProfile = currentUser.$id === user.$id;
-  const isFollowing = currentUser.following?.includes(user.$id);
- 
-  const handleFollow = async () => {
-  if (!currentUser || !setUser) return;
+  const isOwn = currentUser.$id === user.$id;
 
-  setLoadingFollow(true);
-  try {
-    if (isFollowing) {
-      // UNFOLLOW
-      const updatedFollowing = (currentUser.following || []).filter(
-        (id) => id !== user.$id
-      );
-      setUser({ ...currentUser, following: updatedFollowing });
-
-      await databases.updateDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.usersCollectionId,
-        currentUser.$id,
-        { following: updatedFollowing }
-      );
-
-      const updatedFollowers = (user.followers || []).filter(
-        (id: string) => id !== currentUser.$id
-      );
-      await databases.updateDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.usersCollectionId,
-        user.$id,
-        { followers: updatedFollowers }
-      );
-    } else {
-      // FOLLOW
-      const updatedFollowing = [...(currentUser.following || []), user.$id];
-      setUser({ ...currentUser, following: updatedFollowing });
-
-      await databases.updateDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.usersCollectionId,
-        currentUser.$id,
-        { following: updatedFollowing }
-      );
-
-      const updatedFollowers = [...(user.followers || []), currentUser.$id];
-      await databases.updateDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.usersCollectionId,
-        user.$id,
-        { followers: updatedFollowers }
-      );
-    }
-
-    queryClient.invalidateQueries({ queryKey: ["getUserById", user.$id] });
-    queryClient.invalidateQueries({ queryKey: ["getUserById", currentUser.$id] });
-
-  } catch (error) {
-    console.error("Error toggling follow:", error);
-  } finally {
-    setLoadingFollow(false);
-  }
-};
   return (
-    <div className="profile-container w-full min-h-screen px-6 py-10 bg-white">
-      {/* Header + Profile Info */}
-      <div className="flex flex-col xl:flex-row gap-8 w-full items-start xl:items-center mb-10">
-        <img
-          src={user.imageUrl || "/assets/icons/profile-placeholder.svg"}
-          alt="profile"
-          className="w-28 h-28 lg:w-36 lg:h-36 rounded-full object-cover"
-        />
+    <div className="min-h-screen bg-white">
 
-        <div className="flex flex-col flex-1 w-full">
-          <div className="flex flex-col w-full mb-4">
-            <h1 className="text-center xl:text-left h3-bold md:h1-semibold text-black">{user.name}</h1>
-            <p className="small-regular md:body-medium text-gray-600 text-center xl:text-left">
+      {/* HEADER (TikTok-style compact identity bar) */}
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b" style={{ borderColor: P[200] }}>
+        <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-4">
+
+          {/* Avatar */}
+          <img
+            src={user.imageUrl || "/assets/icons/profile-placeholder.svg"}
+            className="w-16 h-16 rounded-full object-cover"
+            style={{ border: `2px solid ${P[200]}` }}
+          />
+
+          {/* Info */}
+          <div className="flex-1">
+            <h1 className="font-bold text-lg" style={{ color: P[700] }}>
+              {user.name}
+            </h1>
+            <p className="text-xs" style={{ color: P[400] }}>
               @{user.username}
             </p>
+
+            {user.bio && (
+              <p className="text-xs mt-1 line-clamp-2" style={{ color: P[500] }}>
+                {user.bio}
+              </p>
+            )}
           </div>
 
-          {/* Stats */}
-          <div className="flex flex-wrap gap-8 justify-center xl:justify-start items-center mb-5">
-            <StatBlock value={userPosts?.documents.length ?? 0} label="Posts" />
-            
-            {/* ✅ FIXED: Wrapped in button to make it clickable */}
-            <button
-              onClick={() => setShowFollowers(!showFollowers)}
-              className="cursor-pointer hover:opacity-75 transition-opacity"
+          {/* Action */}
+          {isOwn ? (
+            <Link
+              to={`/update-profile/${user.$id}`}
+              className="text-xs px-3 py-1 rounded-full text-white"
+              style={{ backgroundColor: P[500] }}
             >
-              <StatBlock value={user.followers?.length ?? 0} label="Followers" />
-            </button>
-
-            {/* ✅ FIXED: Wrapped in button to make it clickable */}
+              Edit
+            </Link>
+          ) : (
             <button
-              onClick={() => setShowFollowing(!showFollowing)}
-              className="cursor-pointer hover:opacity-75 transition-opacity"
+              className="text-xs px-3 py-1 rounded-full text-white"
+              style={{ backgroundColor: P[500] }}
             >
-              <StatBlock value={user.following?.length ?? 0} label="Following" />
+              Follow
             </button>
-          </div>
-
-          {/* Bio */}
-          {user.bio && (
-            <p className="small-medium md:base-medium text-center xl:text-left">
-              {user.bio}
-            </p>
           )}
         </div>
 
-        {/* Edit / Follow button */}
-        <div className="flex justify-center mt-5 xl:mt-0">
-          {isOwnProfile ? (
-            <Link
-              to={`/update-profile/${user.$id}`}
-              className="h-12 bg-dark-4 px-5 text-light-1 flex items-center justify-center gap-2 rounded-lg"
-            >
-              <img src="/assets/icons/edit.svg" alt="edit" width={20} height={20} />
-              <p className="flex whitespace-nowrap small-medium">Edit Profile</p>
-            </Link>
-          ) : (
-           <button
-  className={`shad-button_primary px-8 ${isFollowing ? "bg-blue-600 text-white" : ""}`}
-  onClick={handleFollow}
-  disabled={loadingFollow}  // ✅ removed "|| isFollowing" so unfollow works
->
-  {loadingFollow ? "Loading..." : isFollowing ? "Following" : "Follow"}
-</button>
-          )}
+        {/* STATS BAR (TikTok-like minimal counters) */}
+        <div className="max-w-md mx-auto flex justify-around py-2 text-center">
+          <Stat value={posts?.documents?.length || 0} label="Posts" />
+
+          <button onClick={() => setOpen("followers")}>
+            <Stat value={user.followers?.length || 0} label="Followers" />
+          </button>
+
+          <button onClick={() => setOpen("following")}>
+            <Stat value={user.following?.length || 0} label="Following" />
+          </button>
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="w-full h-0.5 bg-dark-4/80 mb-8" />
-
-      {/* Posts Section - Full Width */}
-      <div className="flex flex-col w-full">
-        <h3 className="body-bold md:h3-bold mb-5">Posts</h3>
-
-        {isPostsLoading ? (
-          <div className="flex justify-center w-full py-10">
+      {/* POSTS (TikTok-style media wall) */}
+      <div className="max-w-md mx-auto px-1 py-2">
+        {postsLoading ? (
+          <div className="flex justify-center py-10">
             <Loader className="animate-spin" />
           </div>
-        ) : (userPosts?.documents ?? []).length === 0 ? (
-          <p className="text-light-4 text-center py-10">No posts yet.</p>
+        ) : (posts?.documents || []).length === 0 ? (
+          <div className="text-center text-sm py-10" style={{ color: P[400] }}>
+            No posts yet
+          </div>
         ) : (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 w-full">
-            {(userPosts?.documents ?? []).map((post: any) => (
-              <li
-                key={post.$id}
-                className="relative cursor-pointer rounded-[24px] overflow-hidden transition-transform duration-200 hover:scale-105"
-                onClick={() => navigate(`/posts/${post.$id}`)}
-              >
-                {post.imageUrl && (
-                  <img
-                    src={post.imageUrl}
-                    alt={post.caption ?? "Post image"}
-                    className="w-full aspect-square object-cover"
-                  />
-                )}
+          <div className="grid grid-cols-3 gap-[2px]">
 
-                {post.caption && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                    <p className="text-white small-medium line-clamp-1">{post.caption}</p>
-                  </div>
-                )}
-              </li>
+            {posts?.documents.map((post: any) => (
+              <div
+                key={post.$id}
+                onClick={() => navigate(`/posts/${post.$id}`)}
+                className="relative aspect-square overflow-hidden cursor-pointer"
+              >
+                <img
+                  src={post.imageUrl}
+                  className="w-full h-full object-cover hover:scale-105 transition duration-300"
+                />
+
+                {/* subtle overlay like TikTok grid */}
+                <div className="absolute inset-0 bg-black/10 hover:bg-black/0 transition" />
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
 
-      {/* ✅ FIXED: Followers Modal */}
-      {showFollowers && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-96 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Followers</h3>
-              <button
-                onClick={() => setShowFollowers(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {isFollowersLoading ? (
-              <div className="flex justify-center py-4">
-                <Loader className="animate-spin" />
-              </div>
-            ) : followers && followers.length > 0 ? (
-              <div className="space-y-2">
-                {followers.map((u: any) => (
-                  <div
-                    key={u.$id}
-                    onClick={() => {
-                      navigate(`/profile/${u.$id}`);
-                      setShowFollowers(false);
-                    }}
-                    className="flex items-center gap-3 p-2 rounded hover:bg-gray-100 cursor-pointer"
-                  >
-                    <img
-                      src={u.imageUrl || "/assets/icons/profile-placeholder.svg"}
-                      alt={u.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="font-semibold">{u.name}</p>
-                      <p className="text-sm text-gray-600">@{u.username}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">No followers yet</p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ✅ FIXED: Following Modal */}
-      {showFollowing && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-96 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Following</h3>
-              <button
-                onClick={() => setShowFollowing(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {isFollowingLoading ? (
-              <div className="flex justify-center py-4">
-                <Loader className="animate-spin" />
-              </div>
-            ) : following && following.length > 0 ? (
-              <div className="space-y-2">
-                {following.map((u: any) => (
-                  <div
-                    key={u.$id}
-                    onClick={() => {
-                      navigate(`/profile/${u.$id}`);
-                      setShowFollowing(false);
-                    }}
-                    className="flex items-center gap-3 p-2 rounded hover:bg-gray-100 cursor-pointer"
-                  >
-                    <img
-                      src={u.imageUrl || "/assets/icons/profile-placeholder.svg"}
-                      alt={u.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="font-semibold">{u.name}</p>
-                      <p className="text-sm text-gray-600">@{u.username}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">Not following anyone yet</p>
-            )}
-          </div>
-        </div>
+      {/* MODAL */}
+      {open && (
+        <Modal
+          title={open}
+          users={open === "followers" ? followers : following}
+          onClose={() => setOpen(null)}
+        />
       )}
     </div>
   );
 };
 
-const StatBlock = ({ value, label }: { value: number; label: string }) => (
-  <div className="flex items-center gap-2">
-    <p className="small-semibold lg:body-bold text-gray-900">{value}</p>
-    <p className="small-medium lg:base-medium text-gray-600">{label}</p>
+/* ================= SMALL UI PIECES ================= */
+
+const Stat = ({ value, label }: any) => (
+  <div>
+    <p className="text-sm font-bold" style={{ color: "#111" }}>
+      {value}
+    </p>
+    <p className="text-[10px]" style={{ color: "#888" }}>
+      {label}
+    </p>
+  </div>
+);
+
+const Modal = ({ title, users, onClose }: any) => (
+  <div className="fixed inset-0 bg-black/40 flex items-end justify-center">
+    <div className="bg-white w-full max-w-md rounded-t-2xl p-4 max-h-[70vh] overflow-y-auto">
+
+      <div className="flex justify-between mb-3">
+        <h3 className="font-semibold">{title}</h3>
+        <button onClick={onClose}>✕</button>
+      </div>
+
+      <div className="space-y-3">
+        {users?.map((u: any) => (
+          <div key={u.$id} className="flex items-center gap-3">
+            <img
+              src={u.imageUrl}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+            <div>
+              <p className="text-sm font-medium">{u.name}</p>
+              <p className="text-xs text-gray-500">@{u.username}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+    </div>
   </div>
 );
 

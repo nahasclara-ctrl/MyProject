@@ -3,21 +3,16 @@ import { useUserContext } from "@/context/AuthContext";
 import Loader from "@/components/shared/Loader";
 import { Link } from "react-router-dom";
 
-
-// Simple fallback if timeAgo doesn't exist in your utils
-function formatTime(dateStr: string) {
-  try {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "just now";
-    if (mins < 60) return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    return `${Math.floor(hrs / 24)}d ago`;
-  } catch {
-    return "";
-  }
-}
+const P = {
+  50: "#f6fbf8",
+  100: "#eaf5ef",
+  200: "#d6ebe0",
+  300: "#b7dcc8",
+  400: "#7bbf9a",
+  500: "#4f9f75",
+  600: "#3f8a63",
+  700: "#2f6e4f",
+};
 
 const Notifications = () => {
   const { user: currentUser } = useUserContext();
@@ -26,27 +21,27 @@ const Notifications = () => {
 
   if (isLoading) {
     return (
-      <div className="flex-center w-full h-full">
+      <div className="flex justify-center items-center h-screen" style={{ backgroundColor: P[50] }}>
         <Loader />
       </div>
     );
   }
 
-  // Build "who follows me" list from all users whose following includes my $id
   const followers =
     allUsers?.documents?.filter((u: any) =>
       u.following?.includes(currentUser.$id)
     ) ?? [];
 
-  // Build "who liked my posts" from saves/likes on my posts
   const myPosts = me?.posts ?? [];
-  type LikeNotif = { user: any; postId: string; postImg: string; caption: string };
-  const likeNotifications: LikeNotif[] = [];
+
+  const likeNotifications: any[] = [];
 
   myPosts.forEach((post: any) => {
     (post.likes ?? []).forEach((likerId: string) => {
-      if (likerId === currentUser.$id) return; // skip self
+      if (likerId === currentUser.$id) return;
+
       const liker = allUsers?.documents?.find((u: any) => u.$id === likerId);
+
       if (liker) {
         likeNotifications.push({
           user: liker,
@@ -61,100 +56,137 @@ const Notifications = () => {
   const isEmpty = followers.length === 0 && likeNotifications.length === 0;
 
   return (
-    <div className="flex flex-1 flex-col gap-6 px-6 py-10 w-full max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-2">
-        <img
-          src="/assets/icons/notification.svg"
-          alt="notifications"
-          width={30}
-          height={30}
-          className="invert-white"
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
-        />
-        <h2 className="h3-bold md:h2-bold">Notifications</h2>
+    <div
+      className="min-h-screen w-full max-w-2xl mx-auto px-4 py-8"
+      style={{ background: `linear-gradient(180deg, ${P[50]}, #ffffff)` }}
+    >
+      {/* HEADER */}
+      <div className="flex items-center gap-3 mb-8">
+        <span className="text-2xl">🔔</span>
+        <h2
+          className="text-2xl font-bold tracking-tight"
+          style={{ color: P[700] }}
+        >
+          Notifications
+        </h2>
       </div>
 
+      {/* EMPTY STATE */}
       {isEmpty ? (
-        <div className="flex-center flex-col gap-4 mt-20">
-          <p className="text-5xl">🔔</p>
-          <p className="text-light-4 text-center">No notifications yet.</p>
-          <p className="text-light-4 text-sm text-center">
-            When people follow or like your posts, you'll see it here.
+        <div
+          className="text-center mt-20 p-10 rounded-2xl border"
+          style={{ backgroundColor: P[50], borderColor: P[200] }}
+        >
+          <p className="text-4xl mb-2">🔔</p>
+          <p className="font-semibold" style={{ color: P[600] }}>
+            No notifications yet
+          </p>
+          <p className="text-sm mt-1" style={{ color: P[400] }}>
+            Likes and follows will appear here
           </p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3 w-full">
-          {/* Follow notifications */}
+        <ul className="flex flex-col gap-3">
+
+          {/* FOLLOW NOTIFICATIONS */}
           {followers.map((follower: any) => (
             <li
               key={`follow-${follower.$id}`}
-              className="flex items-center gap-4 bg-dark-2 rounded-2xl px-5 py-4 hover:bg-dark-3 transition-colors"
+              className="flex items-center gap-3 p-4 rounded-2xl border bg-white transition hover:-translate-y-0.5 hover:shadow-md"
+              style={{
+                borderColor: P[200],
+              }}
             >
               <Link to={`/profile/${follower.$id}`}>
                 <img
-                  src={follower.imageUrl || "/assets/icons/profile-placeholder.svg"}
-                  alt={follower.name}
-                  className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                  src={
+                    follower.imageUrl ||
+                    "/assets/icons/profile-placeholder.svg"
+                  }
+                  className="w-11 h-11 rounded-full object-cover"
+                  style={{ border: `1px solid ${P[200]}` }}
                 />
               </Link>
-              <div className="flex flex-col flex-1 min-w-0">
-                <p className="text-light-1 small-medium">
+
+              <div className="flex-1">
+                <p className="text-sm">
                   <Link
                     to={`/profile/${follower.$id}`}
-                    className="font-semibold hover:underline"
+                    style={{
+                      color: P[600],
+                      fontWeight: 700,
+                      textDecoration: "none",
+                    }}
                   >
                     {follower.name}
                   </Link>{" "}
-                  <span className="text-light-3">started following you</span>
+                  <span style={{ color: P[500] }}>
+                    started following you
+                  </span>
                 </p>
-                <p className="text-light-4 tiny-medium">@{follower.username}</p>
+
+                <p className="text-xs" style={{ color: P[400] }}>
+                  @{follower.username}
+                </p>
               </div>
-              <span className="text-4xl">👤</span>
+
+              <span style={{ color: P[400] }}>👤</span>
             </li>
           ))}
 
-          {/* Like notifications */}
+          {/* LIKE NOTIFICATIONS */}
           {likeNotifications.map((notif, i) => (
             <li
               key={`like-${i}`}
-              className="flex items-center gap-4 bg-dark-2 rounded-2xl px-5 py-4 hover:bg-dark-3 transition-colors"
+              className="flex items-center gap-3 p-4 rounded-2xl border bg-white transition hover:-translate-y-0.5 hover:shadow-md"
+              style={{
+                borderColor: P[200],
+              }}
             >
               <Link to={`/profile/${notif.user.$id}`}>
                 <img
-                  src={notif.user.imageUrl || "/assets/icons/profile-placeholder.svg"}
-                  alt={notif.user.name}
-                  className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                  src={
+                    notif.user.imageUrl ||
+                    "/assets/icons/profile-placeholder.svg"
+                  }
+                  className="w-11 h-11 rounded-full object-cover"
+                  style={{ border: `1px solid ${P[200]}` }}
                 />
               </Link>
-              <div className="flex flex-col flex-1 min-w-0">
-                <p className="text-light-1 small-medium">
+
+              <div className="flex-1">
+                <p className="text-sm">
                   <Link
                     to={`/profile/${notif.user.$id}`}
-                    className="font-semibold hover:underline"
+                    style={{
+                      color: P[600],
+                      fontWeight: 700,
+                      textDecoration: "none",
+                    }}
                   >
                     {notif.user.name}
                   </Link>{" "}
-                  <span className="text-light-3">liked your post</span>
+                  <span style={{ color: P[500] }}>liked your post</span>
                 </p>
+
                 {notif.caption && (
-                  <p className="text-light-4 tiny-medium truncate">
+                  <p className="text-xs mt-1" style={{ color: P[400] }}>
                     "{notif.caption}"
                   </p>
                 )}
               </div>
+
               {notif.postImg && (
                 <Link to={`/posts/${notif.postId}`}>
                   <img
                     src={notif.postImg}
-                    alt="post"
-                    className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                    className="w-11 h-11 rounded-xl object-cover"
+                    style={{ border: `1px solid ${P[200]}` }}
                   />
                 </Link>
               )}
-              <span className="text-2xl">❤️</span>
+
+              <span style={{ color: P[500] }}>❤️</span>
             </li>
           ))}
         </ul>
