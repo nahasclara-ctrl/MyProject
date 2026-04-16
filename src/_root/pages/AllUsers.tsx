@@ -155,21 +155,23 @@ const AllUsers: React.FC = () => {
                 </Link>
 
                 {/* ✅ FIXED: Follow/Unfollow Button - Now enabled always */}
-                {currentUser?.$id !== person.$id && (
-                  <button
-                    className={`shad-button_primary px-5 py-2 text-sm mt-2 w-full transition-colors ${
-                      isFollowing ? "bg-red-500 hover:bg-red-600" : "hover:opacity-90"
-                    }`}
-                    onClick={() => handleFollow(person.$id)}
-                    disabled={loadingFollow === person.$id}  // ✅ Only disabled while loading
-                  >
-                    {loadingFollow === person.$id
-                      ? "Loading..."
-                      : isFollowing
-                      ? "Following" //instead of unfollow i put following because when the user click the button it will show following and if the user click again it will show follow because the user will unfollow the person
-                      : "Follow"}
-                  </button>
-                )}
+               {currentUser?.$id !== person.$id && (
+  <button
+    className={`px-5 py-2 text-sm mt-2 w-full transition-colors rounded-lg font-semibold ${
+      isFollowing
+        ? "bg-red-500 hover:bg-red-600 text-white"
+        : "bg-blue-500 hover:bg-blue-600 text-white"
+    }`}
+    onClick={() => handleFollow(person.$id)}
+    disabled={loadingFollow === person.$id}
+  >
+    {loadingFollow === person.$id
+      ? "Loading..."
+      : isFollowing
+      ? "Following"
+      : "Follow"}
+  </button>
+)}
               </li>
             );
           })}

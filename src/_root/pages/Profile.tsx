@@ -52,10 +52,35 @@ const Profile = () => {
   const isFollowing = currentUser.following?.includes(user.$id);
  
   const handleFollow = async () => {
-    if (!currentUser || !setUser) return;
+  if (!currentUser || !setUser) return;
 
-    setLoadingFollow(true);
-    try {
+  setLoadingFollow(true);
+  try {
+    if (isFollowing) {
+      // UNFOLLOW
+      const updatedFollowing = (currentUser.following || []).filter(
+        (id) => id !== user.$id
+      );
+      setUser({ ...currentUser, following: updatedFollowing });
+
+      await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.usersCollectionId,
+        currentUser.$id,
+        { following: updatedFollowing }
+      );
+
+      const updatedFollowers = (user.followers || []).filter(
+        (id: string) => id !== currentUser.$id
+      );
+      await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.usersCollectionId,
+        user.$id,
+        { followers: updatedFollowers }
+      );
+    } else {
+      // FOLLOW
       const updatedFollowing = [...(currentUser.following || []), user.$id];
       setUser({ ...currentUser, following: updatedFollowing });
 
@@ -73,21 +98,17 @@ const Profile = () => {
         user.$id,
         { followers: updatedFollowers }
       );
-
-      user.followers = updatedFollowers;
-
-      queryClient.invalidateQueries({ queryKey: ["followers", updatedFollowers] });
-      queryClient.invalidateQueries({ queryKey: ["following", currentUser?.following] });
-      queryClient.invalidateQueries({ queryKey: ["getUserById", user?.$id] });
-      queryClient.invalidateQueries({ queryKey: ["getUserById", currentUser?.$id] });
-
-    } catch (error) {
-      console.error("Error following user:", error);
-    } finally {
-      setLoadingFollow(false);
     }
-  };
 
+    queryClient.invalidateQueries({ queryKey: ["getUserById", user.$id] });
+    queryClient.invalidateQueries({ queryKey: ["getUserById", currentUser.$id] });
+
+  } catch (error) {
+    console.error("Error toggling follow:", error);
+  } finally {
+    setLoadingFollow(false);
+  }
+};
   return (
     <div className="profile-container w-full min-h-screen px-6 py-10 bg-white">
       {/* Header + Profile Info */}
@@ -146,13 +167,13 @@ const Profile = () => {
               <p className="flex whitespace-nowrap small-medium">Edit Profile</p>
             </Link>
           ) : (
-            <button
-              className={`shad-button_primary px-8 ${isFollowing ? "bg-blue-600 text-white" : ""}`}
-              onClick={handleFollow}
-              disabled={loadingFollow || isFollowing}
-            >
-              {loadingFollow ? "Following..." : isFollowing ? "Following" : "Follow"}
-            </button>
+           <button
+  className={`shad-button_primary px-8 ${isFollowing ? "bg-blue-600 text-white" : ""}`}
+  onClick={handleFollow}
+  disabled={loadingFollow}  // ✅ removed "|| isFollowing" so unfollow works
+>
+  {loadingFollow ? "Loading..." : isFollowing ? "Following" : "Follow"}
+</button>
           )}
         </div>
       </div>
