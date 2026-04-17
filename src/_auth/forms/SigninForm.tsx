@@ -24,19 +24,213 @@ import { Link, useNavigate } from "react-router-dom";
 import { useSignInAccount } from "@/lib/react-query/queriesAndMutations";
 import { useUserContext } from "@/context/AuthContext";
 
-// ----------------------
-// Theme
-// ----------------------
+const STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
 
-const T = {
-  primary: "#4f9f75",
-  primarySoft: "#7bbf9a",
-  text: "#2f6e4f",
-  muted: "#7bbf9a",
-  border: "#d6ebe0",
-};
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes nodePulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50%       { transform: scale(1.5); opacity: 0.9; }
+  }
 
-// ----------------------
+  .b-wrap * { box-sizing: border-box; }
+
+  .b-wrap {
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background-color: #eef2e6;
+    background-image:
+      radial-gradient(ellipse 55% 45% at 10% 15%, rgba(79,159,117,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 55% at 90% 80%, rgba(122,191,100,0.13) 0%, transparent 60%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .b-node {
+    position: absolute;
+    border-radius: 50%;
+    background: #4f9f75;
+    animation: nodePulse 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .b-node.n1  { width:10px; height:10px; top:7%;   left:5%;   background:#7bbf64; animation-delay:0s; }
+  .b-node.n2  { width: 8px; height: 8px; top:13%;  left:16%;  animation-delay:0.5s; }
+  .b-node.n3  { width:10px; height:10px; top:5%;   left:28%;  background:#7bbf64; animation-delay:0.9s; }
+  .b-node.n4  { width: 8px; height: 8px; top:7%;   right:7%;  animation-delay:0.3s; }
+  .b-node.n5  { width:10px; height:10px; top:18%;  right:18%; background:#7bbf64; animation-delay:0.7s; }
+  .b-node.n6  { width: 8px; height: 8px; bottom:9%;  left:7%;  animation-delay:1.1s; }
+  .b-node.n7  { width:10px; height:10px; bottom:15%; left:20%; background:#7bbf64; animation-delay:0.4s; }
+  .b-node.n8  { width: 8px; height: 8px; bottom:7%;  right:9%; animation-delay:0.8s; }
+  .b-node.n9  { width:10px; height:10px; bottom:18%; right:21%;background:#7bbf64; animation-delay:1.3s; }
+
+  .b-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .b-svg line {
+    stroke: #4f9f75;
+    stroke-width: 0.8;
+    opacity: 0.2;
+  }
+
+  .b-card {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 2.5rem 2.25rem 2rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+      0 2px 4px rgba(47,110,79,0.06),
+      0 20px 60px rgba(47,110,79,0.14);
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .b-logo-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.4rem;
+    animation: fadeUp 0.5s 0.06s ease both;
+    opacity: 0;
+  }
+  .b-logo-img {
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 18px rgba(79,159,117,0.28);
+  }
+  .b-brand-name {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #2f6e4f;
+    margin-top: 0.65rem;
+    letter-spacing: -0.01em;
+  }
+  .b-brand-tag {
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #7bbf9a;
+    margin-top: 0.1rem;
+  }
+
+  .b-headline {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e3d2f;
+    text-align: center;
+    margin: 0 0 0.3rem;
+    animation: fadeUp 0.5s 0.11s ease both;
+    opacity: 0;
+  }
+  .b-sub {
+    font-size: 0.82rem;
+    color: #8aab96;
+    text-align: center;
+    margin: 0 0 1.6rem;
+    animation: fadeUp 0.5s 0.15s ease both;
+    opacity: 0;
+  }
+
+  .b-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1.1rem;
+  }
+  .b-field:nth-of-type(1) { animation: fadeUp 0.5s 0.19s ease both; opacity: 0; }
+  .b-field:nth-of-type(2) { animation: fadeUp 0.5s 0.24s ease both; opacity: 0; }
+
+  .b-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #2f6e4f;
+  }
+
+  .b-field input {
+    width: 100%;
+    background: #f3f8f5 !important;
+    border: 1.5px solid #cce5d8 !important;
+    border-radius: 12px !important;
+    color: #1e3d2f !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 0.92rem !important;
+    font-weight: 500 !important;
+    padding: 0.72rem 1rem !important;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+  .b-field input::placeholder { color: #b0ccbc !important; font-weight: 400 !important; }
+  .b-field input:focus {
+    border-color: #4f9f75 !important;
+    background: #fff !important;
+    box-shadow: 0 0 0 4px rgba(79,159,117,0.13) !important;
+  }
+  .b-field p, .b-field [role="alert"] {
+    font-size: 0.72rem; color: #d9534f; margin-top: 0.15rem;
+  }
+
+  .b-btn-wrap {
+    margin-top: 0.4rem;
+    margin-bottom: 1.2rem;
+    animation: fadeUp 0.5s 0.31s ease both;
+    opacity: 0;
+  }
+  .b-btn {
+    width: 100%;
+    padding: 0.85rem 1rem !important;
+    border-radius: 14px !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    background: linear-gradient(135deg, #2f6e4f 0%, #4f9f75 55%, #7bbf64 100%) !important;
+    border: none !important;
+    cursor: pointer;
+    box-shadow: 0 6px 22px rgba(47,110,79,0.3) !important;
+    transition: filter 0.2s, transform 0.15s, box-shadow 0.2s;
+  }
+  .b-btn:hover:not(:disabled) {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 30px rgba(47,110,79,0.38) !important;
+  }
+  .b-btn:active:not(:disabled) { transform: translateY(0); }
+  .b-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .b-footer {
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #8aab96;
+    animation: fadeUp 0.5s 0.37s ease both;
+    opacity: 0;
+  }
+  .b-footer a {
+    color: #2f6e4f;
+    font-weight: 700;
+    text-decoration: none;
+    margin-left: 0.25rem;
+    transition: color 0.2s;
+  }
+  .b-footer a:hover { color: #4f9f75; }
+`;
 
 type FormValues = z.infer<typeof SigninValidation>;
 
@@ -44,32 +238,18 @@ const SigninForm = () => {
   const { toast } = useToast();
   const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
   const navigate = useNavigate();
-
   const { mutateAsync: signInAccount } = useSignInAccount();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(SigninValidation),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
   async function onSubmit(values: FormValues) {
     try {
-      const session = await signInAccount({
-        email: values.email,
-        password: values.password,
-      });
-
-      if (!session) {
-        return toast({
-          title: "Login after signup failed",
-        });
-      }
-
+      const session = await signInAccount({ email: values.email, password: values.password });
+      if (!session) return toast({ title: "Login after signup failed" });
       const isLoggedIn = await checkAuthUser();
-
       if (isLoggedIn) {
         form.reset();
         toast({ title: "Login successful!" });
@@ -83,128 +263,87 @@ const SigninForm = () => {
   }
 
   return (
-    <Form {...form}>
-      <div
-        className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
-        style={{
-          background: `
-            radial-gradient(circle at 20% 20%, #7bbf9a55 0%, transparent 40%),
-            radial-gradient(circle at 80% 80%, #4f9f7555 0%, transparent 40%),
-            linear-gradient(135deg, #1e4d3a 0%, #2f6e4f 50%, #4f9f75 100%)
-          `,
-        }}
-      >
-        {/* Card */}
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="relative w-full max-w-md flex flex-col gap-6 p-8 rounded-3xl"
-          style={{
-            backgroundColor: "rgba(255,255,255,0.12)",
-            backdropFilter: "blur(18px)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            boxShadow: "0 10px 50px rgba(0,0,0,0.25)",
-          }}
-        >
-          {/* Logo */}
-          <img
-            src="/assets/images/logo1.jpeg"
-            alt="Logo"
-            className="mx-auto w-24 h-24 object-cover rounded-full shadow-lg"
-          />
+    <>
+      <style>{STYLES}</style>
+      <Form {...form}>
+        <div className="b-wrap">
 
-          {/* Title */}
-          <h2 className="text-center text-2xl font-bold text-white">
-            Log in to your account
-          </h2>
+          {/* Network nodes */}
+          {["n1","n2","n3","n4","n5","n6","n7","n8","n9"].map(n => (
+            <div key={n} className={`b-node ${n}`} />
+          ))}
 
-          <p className="text-center text-sm text-white/70">
-            Welcome back! Please enter your details to log in.
-          </p>
+          {/* Connection lines */}
+          <svg className="b-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <line x1="5" y1="7" x2="16" y2="13" />
+            <line x1="16" y1="13" x2="28" y2="5" />
+            <line x1="5" y1="7" x2="28" y2="5" />
+            <line x1="93" y1="7" x2="82" y2="18" />
+            <line x1="7" y1="91" x2="20" y2="85" />
+            <line x1="20" y1="85" x2="7" y2="91" />
+            <line x1="93" y1="93" x2="79" y2="82" />
+            <line x1="16" y1="13" x2="82" y2="18" />
+            <line x1="20" y1="85" x2="79" y2="82" />
+          </svg>
 
-          {/* Email */}
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white/80">
-                  Email / Phone
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    {...field}
-                    className="rounded-xl px-4 py-3 text-white placeholder:text-white/50"
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.1)",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <form onSubmit={form.handleSubmit(onSubmit)} className="b-card">
 
-          {/* Password */}
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white/80">
-                  Password
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    {...field}
-                    className="rounded-xl px-4 py-3 text-white placeholder:text-white/50"
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.1)",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <div className="b-logo-area">
+              <img src="/assets/images/logo1.jpeg" alt="Bondley Logo" className="b-logo-img" />
+              <span className="b-brand-name">Bondley</span>
+              <span className="b-brand-tag">Social Networking Platform</span>
+            </div>
 
-          {/* Button */}
-          <Button
-            type="submit"
-            disabled={isUserLoading}
-            className="rounded-xl py-3 font-semibold transition-all"
-            style={{
-              background: `linear-gradient(135deg, ${T.primary}, ${T.primarySoft})`,
-              color: "#fff",
-              boxShadow: "0 6px 25px rgba(0,0,0,0.3)",
-            }}
-          >
-            {isUserLoading ? (
-              <div className="flex items-center justify-center gap-2">
-                <Loader />
-                Loading...
-              </div>
-            ) : (
-              "Sign In"
-            )}
-          </Button>
+            <h2 className="b-headline">Welcome back 👋</h2>
+            <p className="b-sub">Please enter your details to sign in</p>
 
-          {/* Footer */}
-          <p className="text-center text-sm text-white/70">
-            Don't have an account?
-            <Link
-              to="/sign-up"
-              className="ml-1 font-semibold text-white"
-            >
-              Sign up
-            </Link>
-          </p>
-        </form>
-      </div>
-    </Form>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem className="b-field">
+                  <FormLabel className="b-label">Email / Phone</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="you@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem className="b-field">
+                  <FormLabel className="b-label">Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="••••••••" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="b-btn-wrap">
+              <Button type="submit" disabled={isUserLoading} className="b-btn">
+                {isUserLoading ? (
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"0.5rem" }}>
+                    <Loader /> Signing in…
+                  </div>
+                ) : "Sign In"}
+              </Button>
+            </div>
+
+            <p className="b-footer">
+              Don't have an account?
+              <Link to="/sign-up">Sign up</Link>
+            </p>
+
+          </form>
+        </div>
+      </Form>
+    </>
   );
 };
 

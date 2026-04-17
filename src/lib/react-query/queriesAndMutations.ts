@@ -235,21 +235,17 @@ export const useGetUsers = (limit?: number) => {
   });
 };
 
-export const useGetExplorePosts = (currentUser?: any) => {
+export const useGetExplorePosts = (currentUserId: string) => {
   return useInfiniteQuery({
-    queryKey: ["explorePosts"],
-    enabled: !!currentUser, // only run if currentUser exists
+    queryKey: [QUERY_KEYS.GET_EXPLORE_POSTS, currentUserId],
     queryFn: ({ pageParam }: { pageParam: string | null }) =>
       getInfinitePosts({
         pageParam,
-        excludeUserIds: currentUser
-          ? [currentUser.$id, ...(currentUser.following || [])]
-          : [],
+        excludeUserId: currentUserId,  // only exclude yourself
       }),
-    getNextPageParam: (lastPage) => {
-      if (!lastPage || lastPage.documents.length === 0) return null;
-      const lastDocument = lastPage.documents[lastPage.documents.length - 1];
-      return lastDocument.$id;
+    getNextPageParam: (lastPage: any) => {
+      if (!lastPage || lastPage.documents.length < 10) return undefined;
+      return lastPage.documents[lastPage.documents.length - 1].$id;
     },
     initialPageParam: null,
   });

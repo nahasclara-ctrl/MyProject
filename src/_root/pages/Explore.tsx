@@ -17,12 +17,8 @@ const Explore = () => {
   const { user: currentUser } = useUserContext();
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const {
-    data: posts,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useGetExplorePosts(currentUser ?? { $id: "", following: [] });
+ const { data: posts, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  useGetExplorePosts(currentUser?.$id ?? "");
 
   const { data: searchedPosts, isFetching: isSearchFetching } =
     useSearchPosts(debouncedValue);

@@ -24,8 +24,8 @@ const GridPostList = ({
           key={`${post.$id}-${index}`}
           className="relative min-w-80 h-80 rounded-2xl overflow-hidden group shadow-sm hover:shadow-lg transition-all duration-300"
         >
-          {/* IMAGE */}
-          <Link to={`/posts/${post.$id}`} className="grid-post_link block h-full w-full">
+          {/* POST IMAGE — navigates to the post detail page */}
+          <Link to={`/posts/${post.$id}`} className="block h-full w-full">
             <img
               src={post.imageUrl}
               alt={post.caption || "Post image"}
@@ -33,31 +33,68 @@ const GridPostList = ({
             />
           </Link>
 
-          {/* SOFT OVERLAY */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#2f6e4f]/70 via-[#2f6e4f]/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-300" />
+          {/* HOVER TINT — decorative only, doesn't intercept clicks */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#2f6e4f]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300 pointer-events-none" />
 
-          {/* USER + STATS */}
-          <div
-            className="grid-post_user absolute bottom-0 left-0 w-full p-3 flex items-center justify-between gap-2 backdrop-blur-md bg-white/70 border-t border-[#d6ebe0]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {showUser && post.creator && (
-              <div className="flex items-center justify-start gap-2 flex-1">
+          {/* CREATOR BAR */}
+          <div className="absolute bottom-0 left-0 w-full flex items-center bg-white border-t border-[#e2e8f0]">
+
+            {showUser && post.creator ? (
+              /*
+               * REQUIREMENT: creator section is a navigable link.
+               * - <Link> wraps avatar + name — full left half is clickable.
+               * - to={`/profile/${post.creator.$id}`} routes to that user's profile.
+               * - stopPropagation keeps the post <Link> above from also firing.
+               * - hover:bg-[#f8faf9] + group-hover/creator:text-[#2f6e4f] give
+               *   two simultaneous visual cues that this area is interactive.
+               */
+              <Link
+                to={`/profile/${post.creator.$id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="
+                  flex items-center gap-2 flex-1 min-w-0
+                  px-3 py-2.5
+                  hover:bg-[#f8faf9]
+                  transition-colors duration-150
+                  group/creator
+                "
+              >
                 <img
-                  src={post.creator.imageUrl}
+                  src={
+                    post.creator.imageUrl ||
+                    "/assets/icons/profile-placeholder.svg"
+                  }
                   alt={post.creator.name || "Creator"}
-                  className="h-8 w-8 rounded-full object-cover ring-2 ring-[#b7dcc8]"
+                  className="h-7 w-7 rounded-full object-cover flex-shrink-0 ring-1 ring-[#d1e8dc]"
                 />
-                <p className="line-clamp-1 text-sm font-semibold text-[#2f6e4f]">
+
+                {/*
+                 * REQUIREMENT: name must be clearly visible.
+                 * - font-medium (500) on solid white = ~16:1 contrast ratio.
+                 * - truncate prevents overflow from breaking the flex layout.
+                 * - color shifts to brand green on hover — reinforces clickability.
+                 */}
+                <span className="
+                  text-sm font-medium text-[#0f172a] truncate
+                  group-hover/creator:text-[#2f6e4f]
+                  transition-colors duration-150
+                ">
                   {post.creator.name}
-                </p>
-              </div>
+                </span>
+              </Link>
+            ) : (
+              <div className="flex-1" />
             )}
 
+            {/*
+             * STATS sit outside the creator <Link> entirely.
+             * stopPropagation on the wrapper prevents like/save clicks
+             * from bubbling up to either the creator link or the post link.
+             */}
             {showStats && (
               <div
-                onClick={(e) => e.preventDefault()}
-                className="text-[#4f9f75]"
+                className="px-3 py-2.5 flex-shrink-0 text-[#64748b]"
+                onClick={(e) => e.stopPropagation()}
               >
                 <PostStats post={post} userId={user?.id || ""} />
               </div>
@@ -70,4 +107,3 @@ const GridPostList = ({
 };
 
 export default GridPostList;
-

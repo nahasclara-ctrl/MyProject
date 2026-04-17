@@ -410,20 +410,25 @@ export async function deletePost(postId:string, imageId:string){
     console.log(error)
   }
 }
+// api.ts
+
 export async function getInfinitePosts({
   pageParam,
-  excludeUserIds = [],
+  excludeUserId,
 }: {
   pageParam: string | null;
-  excludeUserIds?: string[];
+  excludeUserId?: string;
 }) {
-  const queries: any[] = [Query.orderDesc("$updatedAt"), Query.limit(10), Query.select(["*", "creator"])];
+  const queries: any[] = [
+    Query.orderDesc("$createdAt"),
+    Query.limit(10),
+  ];
 
   if (pageParam) queries.push(Query.cursorAfter(pageParam));
 
-  //  FIXED HERE
-  if (excludeUserIds.length > 0) {
-    queries.push(Query.notEqual("creator", excludeUserIds[0]));
+  // exclude only the current logged-in user's posts
+  if (excludeUserId) {
+    queries.push(Query.notEqual("creator", excludeUserId));
   }
 
   const posts = await databases.listDocuments(
@@ -432,9 +437,23 @@ export async function getInfinitePosts({
     queries
   );
 
-  return posts;
-}
+  const postsWithCreators = await Promise.all(
+    posts.documents.map(async (post) => {
+      try {
+        const creator = await databases.getDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.usersCollectionId,
+          post.creator
+        );
+        return { ...post, creator };
+      } catch {
+        return post;
+      }
+    })
+  );
 
+  return { ...posts, documents: postsWithCreators };
+}
 
 export async function searchPosts(searchTerm: string) {
   try {
@@ -446,12 +465,31 @@ export async function searchPosts(searchTerm: string) {
 
     if (!posts) throw new Error("Failed to search posts");
 
-    return posts;
+    // Same enrichment — search results also need the creator object
+    const postsWithCreators = await Promise.all(
+      posts.documents.map(async (post) => {
+        try {
+          const creator = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.usersCollectionId,
+            post.creator
+          );
+          return { ...post, creator };
+        } catch {
+          return post;
+        }
+      })
+    );
+
+    return { ...posts, documents: postsWithCreators };
   } catch (error) {
     console.log(error);
     throw error;
   }
 }
+
+
+
 
 export async function getUserById(userId: string) {
   try {
