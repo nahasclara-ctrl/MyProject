@@ -10,7 +10,92 @@
   }
 
   body {
-    @apply bg-green-200 text-black min-h-screen font-inter;
+    @apply bg-green-200 text-black min-h-screen font-inter transition-colors duration-300;
+  }
+
+  /* ── Dark mode: whole-app overrides ── */
+  html.dark body {
+    background-color: #0f1a14 !important;
+    color: #d6ebe0 !important;
+  }
+
+  /* Sidebars, topbar, bottom nav */
+  html.dark .leftsidebar,
+  html.dark .topbar,
+  html.dark .bottom-bar {
+    background-color: #1a2b20 !important;
+    border-color: #2a3f30 !important;
+  }
+
+  /* Any element using bg-dark-2 (cards, post cards, etc.) */
+  html.dark .bg-dark-2 {
+    background-color: #152019 !important;
+  }
+
+  html.dark .bg-dark-3 {
+    background-color: #0f1a14 !important;
+  }
+
+  html.dark .bg-dark-4 {
+    background-color: #1a2b20 !important;
+  }
+
+  /* Post cards */
+  html.dark .post-card {
+    background-color: #1a2b20 !important;
+    border-color: #2a3f30 !important;
+  }
+
+  /* Post details */
+  html.dark .post_details-card,
+  html.dark .post_details-info {
+    background-color: #1a2b20 !important;
+    border-color: #2a3f30 !important;
+  }
+
+  /* User cards */
+  html.dark .user-card {
+    background-color: #1a2b20 !important;
+    border-color: #2a3f30 !important;
+  }
+
+  /* Profile tab */
+  html.dark .profile-tab {
+    background-color: #1a2b20 !important;
+  }
+
+  /* Right panel (home creators) */
+  html.dark .home-creators {
+    background-color: #152019 !important;
+  }
+
+  /* Text overrides */
+  html.dark .text-black,
+  html.dark .text-dark-1,
+  html.dark .text-dark-2 {
+    color: #d6ebe0 !important;
+  }
+
+  /* Inputs */
+  html.dark .shad-input,
+  html.dark .shad-textarea,
+  html.dark .explore-search {
+    background-color: #1a2b20 !important;
+    color: #d6ebe0 !important;
+  }
+
+  /* Generic white/light backgrounds */
+  html.dark .bg-white {
+    background-color: #1a2b20 !important;
+  }
+
+  html.dark .bg-light-2 {
+    background-color: #152019 !important;
+  }
+
+  /* Borders */
+  html.dark .border-dark-4 {
+    border-color: #2a3f30 !important;
   }
 }
 
@@ -144,7 +229,7 @@
   }
 
   .home-creators {
-    @apply hidden xl:flex flex-col w-72 2xl:w-465 px-6 py-10 gap-10  overflow-scroll custom-scrollbar;
+    @apply hidden xl:flex flex-col w-72 2xl:w-465 px-6 py-10 gap-10 overflow-scroll custom-scrollbar;
   }
 
   /* Post Details */
@@ -165,7 +250,7 @@
   }
 
   .post_details-delete_btn {
-    @apply p-0 flex gap-3 hover:bg-transparent hover:text-light-1  text-light-1 small-medium lg:base-medium;
+    @apply p-0 flex gap-3 hover:bg-transparent hover:text-light-1 text-light-1 small-medium lg:base-medium;
   }
 
   /* Profile */
@@ -178,7 +263,7 @@
   }
 
   .profile-tab {
-    @apply flex-center gap-3 py-4 w-48 bg-dark-2  transition flex-1 xl:flex-initial;
+    @apply flex-center gap-3 py-4 w-48 bg-dark-2 transition flex-1 xl:flex-initial;
   }
 
   /* Saved */
@@ -214,7 +299,7 @@
   }
 
   .grid-post_user {
-    @apply absolute bottom-0 p-5 flex-between w-full bg-gradient-to-t from-dark-3 to-transparent rounded-b-[24px] gap-2;
+    @apply absolute bottom-0 p-5 flex-between w-full bg-gradient-to-t from-dark-3 to-transparent rounded-b-[24px] gap-2 z-10;
   }
 
   /* Left sidebar */
@@ -248,7 +333,6 @@
 
 @layer components {
   /* SHADCN COMPONENTS */
-  /* Form */
   .shad-form_label {
     @apply text-white !important;
   }
@@ -265,7 +349,6 @@
     @apply h-36 bg-dark-3 rounded-xl border-none focus-visible:ring-1 focus-visible:ring-offset-1 ring-offset-light-3 !important;
   }
 
-  /* Button */
   .shad-button_primary {
     @apply bg-primary-500 hover:bg-primary-500 text-light-1 flex gap-2 !important;
   }
@@ -278,7 +361,8 @@
     @apply flex gap-4 items-center justify-start hover:bg-transparent hover:text-white !important;
   }
 }
-/* Full page container */
+
+/* Update profile page */
 .update-container {
   display: flex;
   justify-content: center;
@@ -291,7 +375,10 @@
   box-sizing: border-box;
 }
 
-/* Card */
+html.dark .update-container {
+  background-color: #0f1a14;
+}
+
 .update-card {
   background: white;
   padding: 40px 30px;
@@ -305,14 +392,22 @@
   text-align: center;
 }
 
-/* Heading */
+html.dark .update-card {
+  background: #1a2b20;
+  color: #d6ebe0;
+  border: 1px solid #2a3f30;
+}
+
 .update-card h2 {
   font-size: 1.8rem;
   font-weight: 700;
   color: #111;
 }
 
-/* Image preview */
+html.dark .update-card h2 {
+  color: #d6ebe0;
+}
+
 .profile-preview {
   width: 160px;
   height: 160px;
@@ -322,7 +417,6 @@
   border: 3px solid #4caf50;
 }
 
-/* Styled file button */
 .choose-file-label {
   display: inline-block;
   padding: 10px 20px;
@@ -340,7 +434,6 @@
   background-color: #1565c0;
 }
 
-/* Textarea */
 .update-card textarea {
   width: 100%;
   padding: 15px;
@@ -352,12 +445,17 @@
   outline: none;
 }
 
+html.dark .update-card textarea {
+  background-color: #152019;
+  border-color: #2a3f30;
+  color: #d6ebe0;
+}
+
 .update-card textarea::placeholder {
   color: #888;
   font-style: italic;
 }
 
-/* Save button */
 .update-card button {
   display: block;
   width: 100%;
@@ -375,6 +473,217 @@
 .update-card button:hover {
   background-color: #45a049;
 }
-.grid-post_user {
-  @apply absolute bottom-0 p-5 flex-between w-full bg-gradient-to-t from-dark-3 to-transparent rounded-b-[24px] gap-2 z-10;
+
+/* CSS variables */
+:root {
+  --bg: #f6fbf8;
+  --surface: #ffffff;
+  --border: #d6ebe0;
+  --text: #2f6e4f;
+  --subtext: #4f9f75;
+  --muted: #7bbf9a;
+}
+
+html.dark {
+  --bg: #0f1a14;
+  --surface: #1a2b20;
+  --border: #2a3f30;
+  --text: #d6ebe0;
+  --subtext: #7bbf9a;
+  --muted: #3a5444;
+}
+.dark-overlay {
+  min-height: 100vh;
+}
+
+.dark-overlay * {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* Re-invert images/avatars so they look normal */
+.dark-overlay img,
+.dark-overlay video {
+  filter: invert(1) hue-rotate(180deg);
+}
+/* ── Paste this at the BOTTOM of your globals.css ── */
+/* Remove any previous dark-overlay CSS you added */
+
+html.dark body {
+  background-color: #0d1f16 !important;
+  color: #e0f0e8 !important;
+}
+
+/* ── Sidebar ── */
+html.dark .leftsidebar {
+  background-color: #112218 !important;
+  border-right: 1px solid #1e3d2a !important;
+}
+
+html.dark .leftsidebar a,
+html.dark .leftsidebar p,
+html.dark .leftsidebar span {
+  color: #c8e6d4 !important;
+}
+
+html.dark .leftsidebar-link:hover,
+html.dark .leftsidebar-link.active {
+  background-color: #1e3d2a !important;
+}
+
+/* ── Topbar (mobile) ── */
+html.dark .topbar {
+  background-color: #112218 !important;
+  border-bottom: 1px solid #1e3d2a !important;
+}
+
+/* ── Bottom bar (mobile) ── */
+html.dark .bottom-bar {
+  background-color: #112218 !important;
+  border-top: 1px solid #1e3d2a !important;
+}
+
+/* ── Main content area / page backgrounds ── */
+html.dark .home-container,
+html.dark .explore-container,
+html.dark .saved-container,
+html.dark .profile-container,
+html.dark .post_details-container,
+html.dark .common-container,
+html.dark .user-container {
+  background-color: #0d1f16 !important;
+}
+
+/* ── Cards ── */
+html.dark .post-card {
+  background-color: #112218 !important;
+  border-color: #1e3d2a !important;
+}
+
+html.dark .user-card {
+  background-color: #112218 !important;
+  border-color: #1e3d2a !important;
+}
+
+html.dark .post_details-card {
+  background-color: #112218 !important;
+  border-color: #1e3d2a !important;
+}
+
+html.dark .post_details-info {
+  background-color: #112218 !important;
+}
+
+/* ── bg-dark-2 used everywhere ── */
+html.dark .bg-dark-2 {
+  background-color: #112218 !important;
+}
+
+html.dark .bg-dark-1 {
+  background-color: #0d1f16 !important;
+}
+
+html.dark .bg-dark-3 {
+  background-color: #0a1a10 !important;
+}
+
+html.dark .bg-dark-4 {
+  background-color: #1a3526 !important;
+}
+
+/* ── White backgrounds (modals, cards, inputs) ── */
+html.dark .bg-white,
+html.dark [class*="bg-white"] {
+  background-color: #112218 !important;
+}
+
+/* ── Text ── */
+html.dark .text-dark-1,
+html.dark .text-black {
+  color: #e0f0e8 !important;
+}
+
+html.dark .text-light-1 {
+  color: #e0f0e8 !important;
+}
+
+html.dark .text-light-3,
+html.dark .text-light-4 {
+  color: #7aab90 !important;
+}
+
+/* ── Inputs ── */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1a3526 !important;
+  color: #e0f0e8 !important;
+  border-color: #1e3d2a !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #5a8a70 !important;
+}
+
+/* ── Modals / dialogs ── */
+html.dark [role="dialog"],
+html.dark [data-radix-popper-content-wrapper] > div,
+html.dark .modal,
+html.dark [class*="modal"] {
+  background-color: #112218 !important;
+  border-color: #1e3d2a !important;
+  color: #e0f0e8 !important;
+}
+
+/* ── Dropdowns / popovers ── */
+html.dark [data-radix-popper-content-wrapper],
+html.dark [data-radix-select-viewport] {
+  background-color: #112218 !important;
+  border-color: #1e3d2a !important;
+}
+
+/* ── Borders ── */
+html.dark .border-dark-4,
+html.dark [class*="border"] {
+  border-color: #1e3d2a !important;
+}
+
+/* ── Scrollbar ── */
+html.dark ::-webkit-scrollbar-track {
+  background: #0d1f16;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #2d6644;
+}
+
+/* ── Update profile card ── */
+html.dark .update-container {
+  background-color: #0d1f16 !important;
+}
+
+html.dark .update-card {
+  background-color: #112218 !important;
+  color: #e0f0e8 !important;
+  border: 1px solid #1e3d2a !important;
+}
+
+html.dark .update-card h2 {
+  color: #e0f0e8 !important;
+}
+
+html.dark .update-card textarea {
+  background-color: #1a3526 !important;
+  border-color: #1e3d2a !important;
+  color: #e0f0e8 !important;
+}
+
+/* ── Logout button ── */
+html.dark .shad-button_ghost {
+  color: #c8e6d4 !important;
+}
+
+/* ── Smooth transition on everything ── */
+*, *::before, *::after {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }

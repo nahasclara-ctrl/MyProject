@@ -1,56 +1,44 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
-import {
-  useSearchPosts,
-  useGetExplorePosts,
-  useSearchUsers,
-} from "@/lib/react-query/queriesAndMutations";
+import { useSearchPosts, useGetExplorePosts, useSearchUsers } from "@/lib/react-query/queriesAndMutations";
 import useDebounce from "@/hooks/useDebounce";
 import Loader from "@/components/shared/Loader";
 import GridPostList from "@/components/shared/GridPostList";
 import { useUserContext } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeProvider";
+
+const D = { bg: "#0d1f16", card: "#112218", border: "#1e3d2a", text: "#d6ebe0", muted: "#7aab90", input: "#1a3526" };
 
 const Explore = () => {
   const [searchValue, setSearchValue] = useState("");
   const debouncedValue = useDebounce(searchValue, 500);
   const { user: currentUser } = useUserContext();
+  const { darkMode } = useTheme();
   const bottomRef = useRef<HTMLDivElement>(null);
 
- const { data: posts, fetchNextPage, hasNextPage, isFetchingNextPage } =
-  useGetExplorePosts(currentUser?.$id ?? "");
-
-  const { data: searchedPosts, isFetching: isSearchFetching } =
-    useSearchPosts(debouncedValue);
-  const { data: searchedUsers, isFetching: isUserFetching } =
-    useSearchUsers(debouncedValue);
+  const { data: posts, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetExplorePosts(currentUser?.$id ?? "");
+  const { data: searchedPosts, isFetching: isSearchFetching } = useSearchPosts(debouncedValue);
+  const { data: searchedUsers, isFetching: isUserFetching } = useSearchUsers(debouncedValue);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          hasNextPage &&
-          !isFetchingNextPage &&
-          !searchValue
-        ) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage && !searchValue) fetchNextPage();
+    }, { threshold: 0.1 });
     if (bottomRef.current) observer.observe(bottomRef.current);
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, searchValue]);
 
-  if (!posts) {
-    return (
-      <div className="flex-center w-full h-full bg-gradient-to-br from-[#f6fbf8] via-[#eaf5ef] to-[#d6ebe0]">
-        <Loader />
-      </div>
-    );
-  }
+  const bg = darkMode ? D.bg : "#f6fbf8";
+  const card = darkMode ? D.card : "#ffffff";
+  const border = darkMode ? D.border : "#d6ebe0";
+  const text = darkMode ? D.text : "#2f6e4f";
+  const muted = darkMode ? D.muted : "#7bbf9a";
+  const inputBg = darkMode ? D.input : "rgba(255,255,255,0.8)";
+
+  if (!posts) return (
+    <div style={{ background: bg }} className="flex-center w-full h-full"><Loader /></div>
+  );
 
   const shouldShowSearchResults = searchValue !== "";
   const allPosts = posts.pages.flatMap((page: any) => page.documents);
@@ -59,90 +47,50 @@ const Explore = () => {
   const isLoading = isSearchFetching || isUserFetching;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#f6fbf8] via-[#eaf5ef] to-[#d6ebe0] px-6 py-8">
-
+    <div style={{ minHeight: "100vh", width: "100%", background: bg, padding: "32px 24px", transition: "background 0.3s" }}>
       {/* HEADER */}
-      <div className="max-w-5xl mx-auto flex flex-col gap-5 mb-10">
-
-        <h2 className="text-[#2f6e4f] h3-bold md:h2-bold">
-          Search Posts
-        </h2>
-
-        {/* SEARCH BAR */}
-        <div className="flex items-center gap-3 w-full bg-white/80 backdrop-blur-md border border-[#d6ebe0] rounded-2xl px-4 py-3 shadow-sm focus-within:shadow-md transition-all">
-          <img
-            src="/assets/icons/search.svg"
-            width={22}
-            height={22}
-            alt="search"
-            className="opacity-60"
-          />
-
-          <Input
-            type="text"
-            placeholder="Search posts or people..."
-            value={searchValue}
+      <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20, marginBottom: 40 }}>
+        <h2 style={{ color: text, fontSize: 28, fontWeight: 700 }}>Search Posts</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: inputBg, backdropFilter: "blur(10px)", border: `1px solid ${border}`, borderRadius: 16, padding: "12px 16px" }}>
+          <img src="/assets/icons/search.svg" width={22} height={22} alt="search" style={{ opacity: 0.6 }} />
+          <Input type="text" placeholder="Search posts or people..." value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            className="border-0 bg-transparent focus-visible:ring-0 text-[#0f172a]"
-          />
+            className="border-0 bg-transparent focus-visible:ring-0"
+            style={{ color: text }} />
         </div>
       </div>
 
-      {/* TITLE ROW */}
-      <div className="max-w-5xl mx-auto flex items-center justify-between mb-8">
-        <h3 className="text-[#4f9f75] body-bold md:h3-bold">
+      <div style={{ maxWidth: 960, margin: "0 auto", marginBottom: 32 }}>
+        <h3 style={{ color: "#4f9f75", fontSize: 20, fontWeight: 700 }}>
           {shouldShowSearchResults ? "Search Results" : "Discover Posts"}
         </h3>
-
-       
       </div>
 
-      {/* CONTENT */}
-      <div className="max-w-5xl mx-auto flex flex-col gap-10">
-
+      <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", flexDirection: "column", gap: 40 }}>
         {shouldShowSearchResults ? (
-          isLoading ? (
-            <Loader />
-          ) : foundUsers.length === 0 && foundPosts.length === 0 ? (
-            <p className="text-center text-[#94a3b8]">
-              No results found
-            </p>
+          isLoading ? <Loader /> :
+          foundUsers.length === 0 && foundPosts.length === 0 ? (
+            <p style={{ textAlign: "center", color: muted }}>No results found</p>
           ) : (
             <>
-              {/* PEOPLE */}
               {foundUsers.length > 0 && (
-                <div className="flex flex-col gap-4">
-                  <h4 className="text-[#4f9f75] font-semibold">People</h4>
-
-                  <ul className="flex flex-col gap-3">
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <h4 style={{ color: "#4f9f75", fontWeight: 600 }}>People</h4>
+                  <ul style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     {foundUsers.map((person: any) => (
                       <li key={person.$id}>
-                        <Link
-                          to={`/profile/${person.$id}`}
-                          className="flex items-center gap-4 bg-white/80 backdrop-blur-md border border-[#d6ebe0] rounded-2xl px-5 py-3 hover:shadow-md transition-all"
-                        >
-                          <img
-                            src={
-                              person.imageUrl ||
-                              "/assets/icons/profile-placeholder.svg"
-                            }
-                            className="w-12 h-12 rounded-full object-cover border border-[#d6ebe0]"
-                          />
-
-                          <div className="flex flex-col">
-                            <p className="text-[#0f172a] font-semibold">
-                              {person.name}
-                            </p>
-
-                            <p className="text-[#4f9f75] text-sm">
-                              @{person.username}
-                            </p>
-
-                            {person.bio && (
-                              <p className="text-[#94a3b8] text-xs">
-                                {person.bio}
-                              </p>
-                            )}
+                        <Link to={`/profile/${person.$id}`} style={{
+                          display: "flex", alignItems: "center", gap: 16,
+                          background: card, backdropFilter: "blur(10px)",
+                          border: `1px solid ${border}`, borderRadius: 16,
+                          padding: "12px 20px", textDecoration: "none",
+                        }}>
+                          <img src={person.imageUrl || "/assets/icons/profile-placeholder.svg"}
+                            style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", border: `1px solid ${border}` }} />
+                          <div>
+                            <p style={{ color: text, fontWeight: 600 }}>{person.name}</p>
+                            <p style={{ color: "#4f9f75", fontSize: 14 }}>@{person.username}</p>
+                            {person.bio && <p style={{ color: muted, fontSize: 12 }}>{person.bio}</p>}
                           </div>
                         </Link>
                       </li>
@@ -150,20 +98,16 @@ const Explore = () => {
                   </ul>
                 </div>
               )}
-
-              {/* POSTS */}
               {foundPosts.length > 0 && (
-                <div className="flex flex-col gap-4">
-                  <h4 className="text-[#4f9f75] font-semibold">Posts</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <h4 style={{ color: "#4f9f75", fontWeight: 600 }}>Posts</h4>
                   <GridPostList posts={foundPosts as any} />
                 </div>
               )}
             </>
           )
         ) : allPosts.length === 0 ? (
-          <p className="text-center text-[#94a3b8]">
-            No posts to discover yet.
-          </p>
+          <p style={{ textAlign: "center", color: muted }}>No posts to discover yet.</p>
         ) : (
           posts.pages.map((page: any, index: number) => (
             <GridPostList key={`page-${index}`} posts={page.documents} />
@@ -171,16 +115,10 @@ const Explore = () => {
         )}
       </div>
 
-      {/* INFINITE SCROLL */}
       {!shouldShowSearchResults && (
-        <div ref={bottomRef} className="w-full py-10 flex justify-center">
+        <div ref={bottomRef} style={{ width: "100%", padding: "40px 0", display: "flex", justifyContent: "center" }}>
           {isFetchingNextPage && <Loader />}
-
-          {!hasNextPage && allPosts.length > 0 && (
-            <p className="text-[#94a3b8] text-sm">
-              You've seen everything 🎉
-            </p>
-          )}
+          {!hasNextPage && allPosts.length > 0 && <p style={{ color: muted, fontSize: 14 }}>You've seen everything 🎉</p>}
         </div>
       )}
     </div>

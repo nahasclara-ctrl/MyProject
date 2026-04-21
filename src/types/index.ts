@@ -65,6 +65,7 @@ export type INewUser = {
   email: string;
   username: string;
   password: string;
+  bio?: string;
 };
 
 export type AppwritePost = Models.Document & {

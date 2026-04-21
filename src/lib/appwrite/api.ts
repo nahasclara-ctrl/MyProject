@@ -6,7 +6,6 @@ import { appwriteConfig, account, databases, storage, avatars } from "./config";
 // Create User Account
 export async function createUserAccount(user: INewUser) {
   try {
-    // 1. Create account
     const newAccount = await account.create(
       ID.unique(),
       user.email,
@@ -14,25 +13,23 @@ export async function createUserAccount(user: INewUser) {
       user.name
     );
 
-    // 2. Logout FIRST (important)
     await account.deleteSessions();
 
-    // 3. Login new user
     await account.createEmailPasswordSession(
       user.email,
       user.password
     );
 
-    // 4. Create avatar
     const avatarUrl = avatars.getInitials(user.name);
 
-    // 5. Save user in DB
+    // ✅ ADD BIO HERE
     await saveUserToDB({
       accountId: newAccount.$id,
       email: newAccount.email,
       name: newAccount.name,
       imageUrl: avatarUrl,
       username: user.username,
+      bio: user.bio || "", 
     });
 
     return newAccount;
@@ -51,6 +48,8 @@ export async function saveUserToDB(user: {
   name: string;
   imageUrl: string;
   username?: string;
+  bio?: string;
+ 
 }) {
   try {
     //console.log("DB ID:", appwriteConfig.databaseId);
@@ -625,4 +624,43 @@ export async function getUsersByIds(ids: string[]) {
     console.error("getUsersByIds failed:", error);
     return [];
   }
+}
+export async function updateUserProfile({ userId, name, bio }: any) {
+  try {
+    return await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.usersCollectionId,
+      userId,
+      {
+        name,
+        bio,
+      }
+    );
+  } catch (error) {
+    console.error("updateUserProfile error:", error);
+    throw error;
+  }
+}
+export async function changePassword({
+  currentPassword,
+  newPassword,
+}: any) {
+  return await account.updatePassword(newPassword, currentPassword);
+}
+export async function deleteUserAccount(userId: string) {
+  try {
+    // Delete all sessions first (logs out everywhere)
+    await account.deleteSessions();
+  } catch (e) {
+    // ignore if already gone
+  }
+  // Appwrite client SDK cannot delete the auth user itself —
+  // only the Server SDK (with API key) can. So we delete the
+  // DB document and clear sessions. For full auth deletion
+  // you still need the Appwrite Function (as your comment says).
+  await databases.deleteDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.usersCollectionId,
+    userId
+  );
 }
