@@ -11,6 +11,7 @@ const ENV = {
   MESSAGES_COLLECTION_ID: import.meta.env.VITE_APPWRITE_MESSAGES_COLLECTION_ID,
   CIRCLES_COLLECTION_ID: import.meta.env.VITE_APPWRITE_CIRCLES_COLLECTION_ID,
   CIRCLE_MESSAGES_COLLECTION_ID: import.meta.env.VITE_APPWRITE_CIRCLE_MESSAGES_COLLECTION_ID,
+  NOTIFICATIONS_COLLECTION_ID: import.meta.env.VITE_APPWRITE_NOTIFICATIONS_COLLECTION_ID,
 } as const;
 
 const validateEnv = () => {
@@ -47,6 +48,7 @@ export const appwriteConfig = {
   messagesCollectionId: ENV.MESSAGES_COLLECTION_ID,
   circlesCollectionId: ENV.CIRCLES_COLLECTION_ID,
   circleMessagesCollectionId: ENV.CIRCLE_MESSAGES_COLLECTION_ID,
+  notificationsCollectionId: ENV.NOTIFICATIONS_COLLECTION_ID,
 } as const;
 
 export const CONFIG = {

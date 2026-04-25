@@ -3,7 +3,9 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useUserContext } from "@/context/AuthContext";
 import MoodModal from "@/components/MoodModal";
 import { useTheme } from "@/context/ThemeProvider";
-
+// ADD this import
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
+import { useUnreadChats } from "@/hooks/useUnreadChats";
 const P = {
   50: "#f6fbf8", 100: "#eaf5ef", 200: "#d6ebe0",
   300: "#b7dcc8", 400: "#7bbf9a", 500: "#4f9f75",
@@ -117,8 +119,8 @@ const LeftSidebar = () => {
   const [showMood, setShowMood] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  const unreadChats: number = 0;
-  const unreadNotifications: number = 0;
+  const { totalUnread: unreadChats } = useUnreadChats();
+const { unreadCount: unreadNotifications } = useUnreadNotifications();
   const isProfileActive = pathname.startsWith("/profile");
 
   const navItems: NavItem[] = [

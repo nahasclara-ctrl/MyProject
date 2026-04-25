@@ -93,6 +93,7 @@ export async function signInAccount(user: { email: string; password: string }) {
 // ----------------------------
 // REPLACE your getCurrentUser function in src/lib/appwrite/api.ts with this:
 
+
 export async function getCurrentUser() {
   try {
     const currentAccount = await account.get();
@@ -109,15 +110,13 @@ export async function getCurrentUser() {
 
     const user = currentUser.documents[0];
 
-    // Populate each save record with its full post data
+    // Populate saves
     if (user.save && user.save.length > 0) {
       const populatedSaves = await Promise.all(
         user.save.map(async (saveDoc: any) => {
-          // If post is already an object with $id, it's already populated
           if (saveDoc.post && typeof saveDoc.post === "object" && saveDoc.post.$id) {
             return saveDoc;
           }
-          // Otherwise fetch the post manually
           try {
             const postId = typeof saveDoc.post === "string" ? saveDoc.post : saveDoc.post?.$id;
             if (!postId) return saveDoc;
@@ -134,6 +133,19 @@ export async function getCurrentUser() {
       );
       user.save = populatedSaves;
     }
+
+    // ── NEW: fetch this user's posts with their likes ──────────
+    const userPosts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      [
+        Query.equal("creator", user.$id),
+        Query.orderDesc("$createdAt"),
+        Query.limit(100),
+      ]
+    );
+    user.posts = userPosts.documents;
+    // ───────────────────────────────────────────────────────────
 
     return user;
   } catch (error) {
@@ -266,20 +278,44 @@ export async function getRecentPosts() {
   }
 }
 
-export async function likePost(postId: string, likesArray: string[]){
+export async function likePost(postId: string, likesArray: string[], currentUser: { $id: string; name: string; imageUrl: string }) {
   try {
-    const updatedPost  = await databases.updateDocument(
+    const updatedPost = await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.postCollectionId,
       postId,
-      {
-        likes: likesArray,
-      }
-    )
-    if(!updatedPost) throw new Error("Failed to like post");
-    return updatedPost;
+      { likes: likesArray }
+    );
+    if (!updatedPost) throw new Error("Failed to like post");
 
-  }catch(error){
+    // Fetch post to get creator + image info
+    const post = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      postId
+    );
+
+    const creatorId = typeof post.creator === "string" ? post.creator : post.creator?.$id;
+
+    // If liking (user is in new array) → create notification
+    // If unliking (user removed from array) → delete notification
+    if (likesArray.includes(currentUser.$id)) {
+      await createNotification({
+        receiverId: creatorId,
+        senderId: currentUser.$id,
+        type: "like",
+        postId: postId,
+        postImg: post.imageUrl,
+        caption: post.caption,
+        senderName: currentUser.name,
+        senderImg: currentUser.imageUrl,
+      });
+    } else {
+      await deleteLikeNotification(currentUser.$id, postId);
+    }
+
+    return updatedPost;
+  } catch (error) {
     console.error("Error liking post:", error);
   }
 }
@@ -663,4 +699,181 @@ export async function deleteUserAccount(userId: string) {
     appwriteConfig.usersCollectionId,
     userId
   );
+}
+// ── Create a notification ──────────────────────────────────────
+export async function createNotification({
+  receiverId, senderId, type, postId, postImg, caption, senderName, senderImg,
+}: {
+  receiverId: string; senderId: string; type: "like" | "follow";
+  postId?: string; postImg?: string; caption?: string;
+  senderName: string; senderImg?: string;
+}) {
+  // Don't notify yourself
+  if (receiverId === senderId) return;
+
+  // Avoid duplicate like notifications
+  if (type === "like") {
+    const existing = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.notificationsCollectionId,
+      [
+        Query.equal("receiverId", receiverId),
+        Query.equal("senderId", senderId),
+        Query.equal("type", "like"),
+        Query.equal("postId", postId ?? ""),
+      ]
+    );
+    if (existing.documents.length > 0) return;
+  }
+
+  return await databases.createDocument(
+    appwriteConfig.databaseId,
+    appwriteConfig.notificationsCollectionId,
+    ID.unique(),
+    { receiverId, senderId, type, postId: postId ?? "", postImg: postImg ?? "", caption: caption ?? "", senderName, senderImg: senderImg ?? "", read: false }
+  );
+}
+
+// ── Delete a like notification (on unlike) ────────────────────
+export async function deleteLikeNotification(senderId: string, postId: string) {
+  const existing = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.notificationsCollectionId,
+    [
+      Query.equal("senderId", senderId),
+      Query.equal("type", "like"),
+      Query.equal("postId", postId),
+    ]
+  );
+  for (const doc of existing.documents) {
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.notificationsCollectionId,
+      doc.$id
+    );
+  }
+}
+
+// ── Get notifications for a user ──────────────────────────────
+export async function getNotifications(
+  userId: string,
+  limit: number = 20,
+  cursor: string | null = null
+) {
+  const queries: any[] = [
+    Query.equal("receiverId", userId),
+    Query.orderDesc("$createdAt"),
+    Query.limit(limit),
+  ];
+ 
+  if (cursor) {
+    queries.push(Query.cursorAfter(cursor));
+  }
+ 
+  return await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.notificationsCollectionId,
+    queries
+  );
+}
+
+// ── Mark all as read ──────────────────────────────────────────
+export async function markNotificationsRead(userId: string) {
+  const unread = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.notificationsCollectionId,
+    [Query.equal("receiverId", userId), Query.equal("read", false)]
+  );
+  await Promise.all(
+    unread.documents.map((doc) =>
+      databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.notificationsCollectionId,
+        doc.$id,
+        { read: true }
+      )
+    )
+  );
+}
+// ── Add these functions to your api.ts ────────────────────────
+
+// Get count of unread messages for a user (from all senders)
+export async function getUnreadMessageCounts(userId: string): Promise<Record<string, number>> {
+  try {
+    const res = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.messagesCollectionId,
+      [
+        Query.equal("receiverId", userId),
+        Query.equal("read", false),
+        Query.limit(200),
+      ]
+    );
+    const counts: Record<string, number> = {};
+    for (const doc of res.documents) {
+      counts[doc.senderId] = (counts[doc.senderId] ?? 0) + 1;
+    }
+    return counts;
+  } catch (error) {
+    console.error("getUnreadMessageCounts failed:", error);
+    return {}; // ← return empty instead of crashing
+  }
+}
+
+export async function markMessagesRead(senderId: string, receiverId: string) {
+  try {
+    const res = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.messagesCollectionId,
+      [
+        Query.equal("senderId", senderId),
+        Query.equal("receiverId", receiverId),
+        Query.equal("read", false),
+        Query.limit(200),
+      ]
+    );
+    await Promise.all(
+      res.documents.map((doc) =>
+        databases.updateDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.messagesCollectionId,
+          doc.$id,
+          { read: true }
+        )
+      )
+    );
+  } catch (error) {
+    console.error("markMessagesRead failed:", error);
+  }
+}
+
+// Get the latest message between two users (for conversation preview)
+export async function getLatestMessage(userId1: string, userId2: string) {
+  const [res1, res2] = await Promise.all([
+    databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.messagesCollectionId,
+      [
+        Query.equal("senderId", userId1),
+        Query.equal("receiverId", userId2),
+        Query.orderDesc("$createdAt"),
+        Query.limit(1),
+      ]
+    ),
+    databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.messagesCollectionId,
+      [
+        Query.equal("senderId", userId2),
+        Query.equal("receiverId", userId1),
+        Query.orderDesc("$createdAt"),
+        Query.limit(1),
+      ]
+    ),
+  ]);
+
+  const both = [...res1.documents, ...res2.documents];
+  if (both.length === 0) return null;
+  both.sort((a, b) => new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime());
+  return both[0];
 }
