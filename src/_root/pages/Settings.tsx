@@ -70,10 +70,7 @@ const Settings = () => {
     showToast(darkMode ? "Dark mode off" : "Dark mode on");
   };
 
-  const toggleNotifications = () => {
-    const next = !notifications; setNotifications(next);
-    showToast(next ? "Notifications enabled" : "Notifications disabled");
-  };
+  
 
   const handleSaveProfile = async () => {
     if (!profileName.trim()) return showToast("Name cannot be empty");
@@ -171,11 +168,7 @@ const Settings = () => {
           <SettingRow t={t} icon="🌙" label="Dark Mode"
             onClick={handleToggleDark}
             right={<Toggle on={darkMode} onToggle={handleToggleDark} />} />
-          <SettingRow t={t} icon="🔔" label="Notifications" sub={notifications ? "Enabled" : "Disabled"}
-            right={<Toggle on={notifications} onToggle={toggleNotifications} />} />
-          <SettingRow t={t} icon="🌐" label="Language"
-            right={<span style={{ fontSize: 13, color: t.subtext }}>{language}</span>}
-            onClick={() => { setTempLanguage(language); open("language"); }} />
+         
         </Section>
 
         <Section title="Activity" t={t}>

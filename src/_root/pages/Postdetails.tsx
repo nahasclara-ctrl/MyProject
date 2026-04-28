@@ -6,30 +6,49 @@ import { useUserContext } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import PostStats from "@/components/shared/PostStats";
 import { type AppwritePost } from "@/types";
+import { useTheme } from "@/context/ThemeProvider";
 
 const P = {
-  50: "#f6fbf8",
-  100: "#eaf5ef",
-  200: "#d6ebe0",
-  300: "#b7dcc8",
-  400: "#7bbf9a",
-  500: "#4f9f75",
-  600: "#3f8a63",
-  700: "#2f6e4f",
+  50: "#f6fbf8", 100: "#eaf5ef", 200: "#d6ebe0",
+  300: "#b7dcc8", 400: "#7bbf9a", 500: "#4f9f75",
+  600: "#3f8a63", 700: "#2f6e4f",
+};
+
+const D = {
+  bg:      "#0f1a14",
+  surface: "#1a2b20",
+  border:  "#2a3f30",
+  text:    "#d6ebe0",
+  subtext: "#7bbf9a",
+  muted:   "#3a5444",
 };
 
 const Postdetails = () => {
   const { id } = useParams();
   const { data: post, isPending } = useGetPostById(id || "");
   const { user } = useUserContext();
+  const { darkMode } = useTheme(); // ← only addition
 
   const handleDeletePost = () => {};
+
+  // ── Theme tokens ──────────────────────────────────────────────
+  const t = {
+    pageBg:  darkMode ? D.bg      : `linear-gradient(180deg, ${P[50]}, #ffffff)`,
+    surface: darkMode ? D.surface : "#ffffff",
+    border:  darkMode ? D.border  : P[200],
+    text:    darkMode ? D.text    : P[700],
+    subtext: darkMode ? D.subtext : P[400],
+    caption: darkMode ? D.text    : P[600],
+    tagBg:   darkMode ? D.muted   : P[50],
+    tagText: darkMode ? D.subtext : P[500],
+    divider: darkMode ? D.border  : P[200],
+  };
 
   if (isPending) {
     return (
       <div
-        className="flex justify-center items-center min-h-screen"
-        style={{ background: `linear-gradient(135deg, ${P[50]}, ${P[100]})` }}
+        className="flex justify-center items-center min-h-screen transition-colors duration-300"
+        style={{ background: t.pageBg }}
       >
         <Loader />
       </div>
@@ -39,12 +58,12 @@ const Postdetails = () => {
   if (!post) {
     return (
       <div
-        className="flex justify-center items-center min-h-screen"
-        style={{ background: `linear-gradient(135deg, ${P[50]}, ${P[100]})` }}
+        className="flex justify-center items-center min-h-screen transition-colors duration-300"
+        style={{ background: t.pageBg }}
       >
         <div
-          className="p-6 rounded-2xl border bg-white text-center"
-          style={{ borderColor: P[200], color: P[600] }}
+          className="p-6 rounded-2xl border text-center"
+          style={{ background: t.surface, borderColor: t.border, color: t.caption }}
         >
           Post not found.
         </div>
@@ -56,14 +75,12 @@ const Postdetails = () => {
 
   return (
     <div
-      className="min-h-screen flex justify-center px-4 py-10"
-      style={{
-        background: `linear-gradient(180deg, ${P[50]}, #ffffff)`,
-      }}
+      className="min-h-screen flex justify-center px-4 py-10 transition-colors duration-300"
+      style={{ background: t.pageBg }}
     >
       <div
-        className="w-full max-w-4xl rounded-2xl overflow-hidden border shadow-sm bg-white"
-        style={{ borderColor: P[200] }}
+        className="w-full max-w-4xl rounded-2xl overflow-hidden border shadow-sm transition-colors duration-300"
+        style={{ borderColor: t.border, background: t.surface }}
       >
         {/* IMAGE */}
         {post.imageUrl && (
@@ -85,20 +102,15 @@ const Postdetails = () => {
                 className="flex items-center gap-3"
               >
                 <img
-                  src={
-                    post.creator.imageUrl ||
-                    "/assets/icons/profile-placeholder.svg"
-                  }
+                  src={post.creator.imageUrl || "/assets/icons/profile-placeholder.svg"}
                   className="w-11 h-11 rounded-full object-cover"
-                  style={{ border: `1px solid ${P[200]}` }}
+                  style={{ border: `1px solid ${t.border}` }}
                 />
-
                 <div>
-                  <p className="font-semibold" style={{ color: P[700] }}>
+                  <p className="font-semibold" style={{ color: t.text }}>
                     {post.creator.name}
                   </p>
-
-                  <p className="text-xs" style={{ color: P[400] }}>
+                  <p className="text-xs" style={{ color: t.subtext }}>
                     {post.$createdAt ? formatDate(post.$createdAt) : ""}
                     {post.location && ` • ${post.location}`}
                   </p>
@@ -116,19 +128,16 @@ const Postdetails = () => {
                       width={20}
                       height={20}
                       className="opacity-60 hover:opacity-100 transition"
+                      style={{ filter: darkMode ? "invert(1)" : "none" }}
                     />
                   </Link>
-
-                  <Button
-                    onClick={handleDeletePost}
-                    variant="ghost"
-                    className="p-1"
-                  >
+                  <Button onClick={handleDeletePost} variant="ghost" className="p-1">
                     <img
                       src="/assets/icons/delete.svg"
                       width={20}
                       height={20}
                       className="opacity-60 hover:opacity-100 transition"
+                      style={{ filter: darkMode ? "invert(1)" : "none" }}
                     />
                   </Button>
                 </>
@@ -137,21 +146,20 @@ const Postdetails = () => {
           </div>
 
           {/* DIVIDER */}
-          <div className="h-px" style={{ backgroundColor: P[200] }} />
+          <div className="h-px" style={{ backgroundColor: t.divider }} />
 
           {/* CAPTION */}
           <div className="space-y-3">
-            <p style={{ color: P[600] }}>{post?.caption}</p>
-
+            <p style={{ color: t.caption }}>{post?.caption}</p>
             <ul className="flex flex-wrap gap-2">
               {post?.tags.map((tag: string, index: number) => (
                 <li
                   key={`${tag}-${index}`}
                   className="text-sm px-2 py-1 rounded-full"
                   style={{
-                    color: P[500],
-                    backgroundColor: P[50],
-                    border: `1px solid ${P[200]}`,
+                    color: t.tagText,
+                    backgroundColor: t.tagBg,
+                    border: `1px solid ${t.border}`,
                   }}
                 >
                   #{tag}
@@ -161,10 +169,7 @@ const Postdetails = () => {
           </div>
 
           {/* STATS */}
-          <div
-            className="pt-4 border-t"
-            style={{ borderColor: P[200] }}
-          >
+          <div className="pt-4 border-t" style={{ borderColor: t.divider }}>
             <PostStats
               post={post as unknown as AppwritePost}
               userId={user.id || ""}

@@ -6,6 +6,8 @@ import { useGetUsers } from "@/lib/react-query/queriesAndMutations";
 import { databases, appwriteConfig } from "@/lib/appwrite/config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@/context/ThemeProvider";
+import { createNotification } from "@/lib/appwrite/api";
+import { Query } from "appwrite";
 
 export interface IUser {
   $id: string; name: string; username: string;
@@ -51,27 +53,61 @@ const AllUsers: React.FC = () => {
     setLoadingFollow(followedUserId);
     try {
       const isCurrentlyFollowing = currentUser.following?.includes(followedUserId);
+
       if (isCurrentlyFollowing) {
+        // ── UNFOLLOW ──
         const updatedFollowing = (currentUser.following || []).filter((id) => id !== followedUserId);
         setUser({ ...currentUser, following: updatedFollowing });
         await databases.updateDocument(appwriteConfig.databaseId, appwriteConfig.usersCollectionId, currentUser.$id, { following: updatedFollowing });
+
         const followedUser = userList.find((u) => u.$id === followedUserId);
         if (followedUser) {
           const updatedFollowers = (followedUser.followers || []).filter((id) => id !== currentUser.$id);
           await databases.updateDocument(appwriteConfig.databaseId, appwriteConfig.usersCollectionId, followedUserId, { followers: updatedFollowers });
           followedUser.followers = updatedFollowers;
         }
+
+        // Delete follow notification
+        const notif = await databases.listDocuments(
+          appwriteConfig.databaseId,
+          appwriteConfig.notificationsCollectionId,
+          [
+            Query.equal("senderId", currentUser.$id),
+            Query.equal("receiverId", followedUserId),
+            Query.equal("type", "follow"),
+          ]
+        );
+        for (const doc of notif.documents) {
+          await databases.deleteDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.notificationsCollectionId,
+            doc.$id
+          );
+        }
+
       } else {
+        // ── FOLLOW ──
         const updatedFollowing = [...(currentUser.following || []), followedUserId];
         setUser({ ...currentUser, following: updatedFollowing });
         await databases.updateDocument(appwriteConfig.databaseId, appwriteConfig.usersCollectionId, currentUser.$id, { following: updatedFollowing });
+
         const followedUser = userList.find((u) => u.$id === followedUserId);
         if (followedUser) {
           const updatedFollowers = [...(followedUser.followers || []), currentUser.$id];
           await databases.updateDocument(appwriteConfig.databaseId, appwriteConfig.usersCollectionId, followedUserId, { followers: updatedFollowers });
           followedUser.followers = updatedFollowers;
         }
+
+        // Create follow notification
+        await createNotification({
+          receiverId: followedUserId,
+          senderId: currentUser.$id,
+          type: "follow",
+          senderName: currentUser.name,
+          senderImg: currentUser.imageUrl ?? "",
+        });
       }
+
       queryClient.invalidateQueries({ queryKey: ["getUsers"] });
       queryClient.invalidateQueries({ queryKey: ["getUserById", currentUser.$id] });
       queryClient.invalidateQueries({ queryKey: ["getUserById", followedUserId] });
