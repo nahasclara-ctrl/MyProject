@@ -3,9 +3,6 @@ import MoodCircles from "@/components/MoodCircles";
 
 type MoodType = "happy" | "sad" | "stressed" | "bored" | "chill";
 
-// ============================================================
-// DESIGN SYSTEM (UNIFIED PALETTE)
-// ============================================================
 
 const P = {
   50: "#f6fbf8",
@@ -31,9 +28,6 @@ interface Props {
   userDisplayName: string;
 }
 
-// ============================================================
-// COMPONENT
-// ============================================================
 
 export default function MoodModal({ userId, userDisplayName }: Props) {
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
@@ -64,23 +58,19 @@ export default function MoodModal({ userId, userDisplayName }: Props) {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
 
-      {/* ======================================================
-          BACKGROUND BLUR LAYERS
-      ====================================================== */}
+      
       <div className="absolute inset-0 bg-[#f6fbf8]" />
 
       <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-[#4f9f75] opacity-20 blur-[140px] rounded-full" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#7bbf9a] opacity-20 blur-[140px] rounded-full" />
 
-      {/* overlay glass */}
+      
       <div className="absolute inset-0 bg-white/30 backdrop-blur-md" />
 
-      {/* ======================================================
-          MODAL CARD (GLASS STYLE)
-      ====================================================== */}
+      
       <div className="relative w-[360px] rounded-3xl border border-[#d6ebe0] bg-white/70 backdrop-blur-2xl shadow-2xl p-6 text-center">
 
-        {/* close button */}
+        
         <button
           onClick={handleClose}
           className="absolute top-3 right-4 text-[#7bbf9a] hover:text-[#2f6e4f] text-xl transition"
@@ -88,7 +78,7 @@ export default function MoodModal({ userId, userDisplayName }: Props) {
           ✕
         </button>
 
-        {/* title */}
+      
         <h2 className="text-xl font-extrabold text-[#2f6e4f] mb-1">
           Pick your mood 🎭
         </h2>
@@ -97,9 +87,7 @@ export default function MoodModal({ userId, userDisplayName }: Props) {
           Join people sharing the same vibe
         </p>
 
-        {/* ======================================================
-            MOOD GRID
-        ====================================================== */}
+        
         <div className="grid grid-cols-2 gap-3">
           {Object.entries(MOODS).map(([key, mood]) => (
             <button

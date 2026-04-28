@@ -27,7 +27,7 @@ const Updateprofile = () => {
   const [loading, setLoading] = useState(false);
 
   const { user: currentUser } = useUserContext();
-  const { darkMode } = useTheme(); // ← only addition
+  const { darkMode } = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +65,7 @@ const Updateprofile = () => {
     }
   };
 
-  // ── Theme tokens ──────────────────────────────────────────────
+ 
   const t = {
     pageBg:   darkMode ? D.bg      : P[50],
     surface:  darkMode ? D.surface : "#ffffff",
@@ -89,7 +89,7 @@ const Updateprofile = () => {
         style={{ background: t.surface, borderColor: t.border }}
       >
 
-        {/* HEADER */}
+    
         <h2
           className="text-center text-lg font-semibold mb-6"
           style={{ color: t.text }}
@@ -97,7 +97,7 @@ const Updateprofile = () => {
           Edit Profile
         </h2>
 
-        {/* AVATAR SECTION */}
+       
         <div className="flex flex-col items-center mb-6">
           <div className="relative group">
             <img
@@ -136,7 +136,7 @@ const Updateprofile = () => {
           </p>
         </div>
 
-        {/* BIO SECTION */}
+     
         <div className="mb-5">
           <label className="text-xs font-medium" style={{ color: t.subtext }}>
             Bio
@@ -157,10 +157,10 @@ const Updateprofile = () => {
           />
         </div>
 
-        {/* DIVIDER */}
+      
         <div className="h-px my-4" style={{ background: t.border }} />
 
-        {/* ACTION BUTTON */}
+        
         <button
           type="submit"
           disabled={loading}
@@ -174,7 +174,7 @@ const Updateprofile = () => {
           {loading ? "Saving..." : "Save Changes"}
         </button>
 
-        {/* FOOTER NOTE */}
+        
         <p className="text-center text-xs mt-4" style={{ color: t.muted }}>
           Your profile will be updated instantly
         </p>

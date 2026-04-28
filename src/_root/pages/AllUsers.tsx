@@ -55,7 +55,7 @@ const AllUsers: React.FC = () => {
       const isCurrentlyFollowing = currentUser.following?.includes(followedUserId);
 
       if (isCurrentlyFollowing) {
-        // ── UNFOLLOW ──
+        
         const updatedFollowing = (currentUser.following || []).filter((id) => id !== followedUserId);
         setUser({ ...currentUser, following: updatedFollowing });
         await databases.updateDocument(appwriteConfig.databaseId, appwriteConfig.usersCollectionId, currentUser.$id, { following: updatedFollowing });
@@ -67,7 +67,7 @@ const AllUsers: React.FC = () => {
           followedUser.followers = updatedFollowers;
         }
 
-        // Delete follow notification
+        
         const notif = await databases.listDocuments(
           appwriteConfig.databaseId,
           appwriteConfig.notificationsCollectionId,
@@ -86,7 +86,7 @@ const AllUsers: React.FC = () => {
         }
 
       } else {
-        // ── FOLLOW ──
+      
         const updatedFollowing = [...(currentUser.following || []), followedUserId];
         setUser({ ...currentUser, following: updatedFollowing });
         await databases.updateDocument(appwriteConfig.databaseId, appwriteConfig.usersCollectionId, currentUser.$id, { following: updatedFollowing });
@@ -98,7 +98,7 @@ const AllUsers: React.FC = () => {
           followedUser.followers = updatedFollowers;
         }
 
-        // Create follow notification
+        
         await createNotification({
           receiverId: followedUserId,
           senderId: currentUser.$id,

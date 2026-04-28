@@ -26,7 +26,7 @@ const D = {
 
 const Home = () => {
   const { user: currentUser } = useUserContext();
-  const { darkMode } = useTheme(); // ← only addition
+  const { darkMode } = useTheme();
 
   const {
     data: posts,
@@ -54,7 +54,7 @@ const Home = () => {
 
   const allPosts = posts?.pages.flatMap((page: any) => page.documents) ?? [];
 
-  // ── Theme tokens ──────────────────────────────────────────────
+
   const t = {
     pageBg:       darkMode ? D.bg      : `linear-gradient(135deg, ${P[50]}, ${P[100]}, #ffffff)`,
     blob1Bg:      darkMode ? D.blob1   : P[200],
@@ -82,7 +82,7 @@ const Home = () => {
         className="flex flex-1 relative overflow-hidden transition-colors duration-300"
         style={{ background: t.pageBg }}
       >
-        {/* ambient background blobs */}
+       
         <div
           className="absolute -top-40 -left-40 w-[420px] h-[420px] rounded-full blur-3xl"
           style={{ backgroundColor: t.blob1Bg, opacity: darkMode ? 0.3 : 0.5 }}
@@ -99,7 +99,7 @@ const Home = () => {
         <div className="relative z-10 w-full">
           <div className="w-full max-w-2xl mx-auto py-10 px-4">
 
-            {/* HEADER */}
+          
             <h2
               className="text-3xl md:text-4xl font-bold tracking-tight mb-8 transition-colors duration-300"
               style={{ color: t.heading }}
@@ -107,7 +107,7 @@ const Home = () => {
               Home Feed
             </h2>
 
-            {/* POSTS */}
+            
             {isPostLoading ? (
               <div className="flex justify-center items-center py-20">
                 <Loader />
@@ -144,7 +144,7 @@ const Home = () => {
               </ul>
             )}
 
-            {/* INFINITE SCROLL */}
+            
             <div ref={bottomRef} className="w-full py-10 flex justify-center">
               {isFetchingNextPage && <Loader />}
               {!hasNextPage && allPosts.length > 0 && (

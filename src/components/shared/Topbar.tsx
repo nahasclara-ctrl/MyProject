@@ -34,7 +34,7 @@ const Topbar = () => {
     >
       <div className="flex-between py-4 px-5">
 
-        {/* LOGO */}
+     
         <Link to="/" className="flex gap-3 items-center">
           <img
             src="/assets/images/log0.png"
@@ -44,10 +44,10 @@ const Topbar = () => {
           />
         </Link>
 
-        {/* ACTIONS */}
+      
         <div className="flex gap-4 items-center">
 
-          {/* LOGOUT */}
+         
           <Button
             variant="ghost"
             className="shad-button_ghost"
@@ -65,7 +65,7 @@ const Topbar = () => {
             />
           </Button>
 
-          {/* PROFILE */}
+         
           <Link to={`/profile/${user.id}`} className="flex gap-2 items-center">
             <img
               src={

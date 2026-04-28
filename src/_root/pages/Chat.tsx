@@ -80,11 +80,11 @@ const Chat = () => {
   const [isSending, setIsSending] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
-  // unread counts per sender
+  
   const [unreadBySender, setUnreadBySender] = useState<Record<string, number>>({});
-  // latest message preview per conversation partner
+  
   const [latestMsgs, setLatestMsgs] = useState<Record<string, Message | null>>({});
-  // sorted user list
+  
   const [sortedUsers, setSortedUsers] = useState<any[]>([]);
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -94,18 +94,16 @@ const Chat = () => {
     selectedUserRef.current = selectedUser;
   }, [selectedUser]);
 
-  // ── Scroll to bottom on new messages ────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ── Initial unread counts ────────────────────────────────────
   useEffect(() => {
     if (!currentUser.$id) return;
     getUnreadMessageCounts(currentUser.$id).then(setUnreadBySender);
   }, [currentUser.$id]);
 
-  // ── Load latest messages + sort users ───────────────────────
+  
   useEffect(() => {
     if (!allUsers?.documents || !currentUser.$id) return;
     const others = allUsers.documents.filter((u: any) => u.$id !== currentUser.$id);
@@ -119,7 +117,7 @@ const Chat = () => {
       );
       setLatestMsgs(previews);
 
-      // Sort: users with messages first (by latest), then the rest
+      
       const withMsg = others
         .filter((u: any) => previews[u.$id])
         .sort((a: any, b: any) => {
@@ -132,7 +130,7 @@ const Chat = () => {
     })();
   }, [allUsers, currentUser.$id]);
 
-  // ── Realtime: global message listener ───────────────────────
+
   useEffect(() => {
     if (!currentUser.$id) return;
 
@@ -149,7 +147,6 @@ const Chat = () => {
       const partnerId = isForMe ? doc.senderId : doc.receiverId;
 
       if (event.includes("create")) {
-        // Update latest message preview & re-sort
         setLatestMsgs((prev) => ({ ...prev, [partnerId]: doc }));
         setSortedUsers((prev) => {
           const idx = prev.findIndex((u) => u.$id === partnerId);
@@ -159,7 +156,7 @@ const Chat = () => {
           return [user, ...rest];
         });
 
-        // If this message is for me and I'm NOT in that conversation → add unread
+       
         if (isForMe && selectedUserRef.current?.$id !== partnerId) {
           setUnreadBySender((prev) => ({
             ...prev,
@@ -167,13 +164,13 @@ const Chat = () => {
           }));
         }
 
-        // If I'm currently viewing this conversation → append to messages
+        
         if (selectedUserRef.current?.$id === partnerId) {
           setMessages((prev) => {
             if (prev.find((m) => m.$id === doc.$id)) return prev;
             return [...prev, doc];
           });
-          // Mark as read immediately
+          
           if (isForMe) {
             markMessagesRead(doc.senderId, currentUser.$id);
           }
@@ -184,7 +181,7 @@ const Chat = () => {
     return () => unsub();
   }, [currentUser.$id]);
 
-  // ── Open conversation ────────────────────────────────────────
+
   const openConversation = useCallback(async (person: any) => {
     setSelectedUser(person);
     setIsLoadingMessages(true);
@@ -192,7 +189,6 @@ const Chat = () => {
     setMessages(msgs);
     setIsLoadingMessages(false);
 
-    // Mark their messages as read
     await markMessagesRead(person.$id, currentUser.$id);
     setUnreadBySender((prev) => {
       const next = { ...prev };
@@ -201,7 +197,7 @@ const Chat = () => {
     });
   }, [currentUser.$id]);
 
-  // ── Send message ─────────────────────────────────────────────
+ 
   const handleSend = async () => {
     if (!inputText.trim() || !selectedUser || isSending) return;
     const text = inputText.trim();
@@ -223,7 +219,7 @@ const Chat = () => {
       const msgs = await fetchMessages(currentUser.$id, selectedUser.$id);
       setMessages(msgs);
 
-      // Update latest preview
+  
       const latest = msgs[msgs.length - 1] ?? null;
       setLatestMsgs((prev) => ({ ...prev, [selectedUser.$id]: latest }));
       setSortedUsers((prev) => {
@@ -237,7 +233,7 @@ const Chat = () => {
     }
   };
 
-  // ── Total unread for sidebar (exported via hook — see useUnreadChats) ──
+
   const totalUnread = Object.values(unreadBySender).reduce((a, b) => a + b, 0);
 
   if (isLoading) {
@@ -253,12 +249,12 @@ const Chat = () => {
       className="flex flex-1 h-full w-full max-w-5xl mx-auto overflow-hidden rounded-2xl shadow-md"
       style={{ background: T.bg, transition: "background 0.3s" }}
     >
-      {/* ── LEFT PANEL ── */}
+    
       <div
         className="w-72 flex flex-col"
         style={{ background: T.card, backdropFilter: "blur(10px)", borderRight: `1px solid ${T.border}` }}
       >
-        {/* Header */}
+       
         <div style={{ padding: 20, borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 8 }}>
           <h2 style={{ color: T.primary, fontWeight: 800, flex: 1 }}>Messages</h2>
           {totalUnread > 0 && (
@@ -272,7 +268,7 @@ const Chat = () => {
           )}
         </div>
 
-        {/* User list */}
+       
         <ul className="flex flex-col overflow-y-auto flex-1">
           {sortedUsers.map((person: any) => {
             const isSelected = selectedUser?.$id === person.$id;
@@ -291,7 +287,7 @@ const Chat = () => {
                   borderLeft: isSelected ? `3px solid ${T.primary}` : "3px solid transparent",
                 }}
               >
-                {/* Avatar */}
+              
                 <div style={{ position: "relative", flexShrink: 0 }}>
                   <img
                     src={person.imageUrl || "/assets/icons/profile-placeholder.svg"}
@@ -312,7 +308,7 @@ const Chat = () => {
                   )}
                 </div>
 
-                {/* Name + preview */}
+                
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{
                     color: T.text, fontWeight: unread > 0 ? 700 : 600,
@@ -336,7 +332,7 @@ const Chat = () => {
                   )}
                 </div>
 
-                {/* Time */}
+                
                 {latest && (
                   <span style={{ color: T.muted, fontSize: "0.65rem", flexShrink: 0 }}>
                     {new Date(latest.$createdAt).toLocaleTimeString(undefined, {
@@ -350,7 +346,7 @@ const Chat = () => {
         </ul>
       </div>
 
-      {/* ── CHAT AREA ── */}
+      
       <div className="flex flex-col flex-1" style={{ background: T.bg }}>
         {!selectedUser ? (
           <div className="flex-center flex-col gap-4 h-full">
@@ -364,7 +360,7 @@ const Chat = () => {
           </div>
         ) : (
           <>
-            {/* Header */}
+           
             <div style={{
               display: "flex", alignItems: "center", gap: 12, padding: 16,
               background: T.card, backdropFilter: "blur(10px)",
@@ -381,7 +377,7 @@ const Chat = () => {
               </div>
             </div>
 
-            {/* Messages */}
+         
             <div style={{ flex: 1, padding: 16, overflowY: "auto" }}>
               {isLoadingMessages ? (
                 <div className="flex-center h-full"><Loader /></div>
@@ -410,7 +406,7 @@ const Chat = () => {
               <div ref={bottomRef} />
             </div>
 
-            {/* Input */}
+           
             <div style={{
               display: "flex", gap: 10, padding: 14,
               background: T.card, backdropFilter: "blur(10px)",

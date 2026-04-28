@@ -39,7 +39,7 @@ const Notifications = () => {
     muted:   darkMode ? D.muted   : P[400],
   };
  
-  // ── Initial fetch ────────────────────────────────────────────
+  
   useEffect(() => {
     if (!user.$id) return;
     (async () => {
@@ -55,7 +55,7 @@ const Notifications = () => {
     })();
   }, [user.$id]);
  
-  // ── Load more ────────────────────────────────────────────────
+  
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore || !cursorRef.current) return;
     setLoadingMore(true);
@@ -72,7 +72,7 @@ const Notifications = () => {
     setLoadingMore(false);
   }, [loadingMore, hasMore, user.$id]);
  
-  // ── Infinite scroll observer ─────────────────────────────────
+ 
   useEffect(() => {
     if (!bottomRef.current) return;
     const observer = new IntersectionObserver(
@@ -83,7 +83,7 @@ const Notifications = () => {
     return () => observer.disconnect();
   }, [loadMore]);
  
-  // ── Realtime subscription ────────────────────────────────────
+ 
   useEffect(() => {
     if (!user.$id) return;
     const channel = `databases.${appwriteConfig.databaseId}.collections.${appwriteConfig.notificationsCollectionId}.documents`;
@@ -105,7 +105,7 @@ const Notifications = () => {
     return () => unsub();
   }, [user.$id]);
  
-  // ── Mark read after 2s ───────────────────────────────────────
+  
   useEffect(() => {
     if (!user.$id || unreadCount === 0) return;
     const timer = setTimeout(() => {
@@ -129,7 +129,7 @@ const Notifications = () => {
       className="min-h-screen w-full max-w-2xl mx-auto px-4 py-8 transition-colors duration-300"
       style={{ background: t.pageBg, color: t.text }}
     >
-      {/* Header */}
+
       <div className="flex items-center gap-3 mb-8">
         <span className="text-2xl">🔔</span>
         <h2 className="text-2xl font-bold tracking-tight" style={{ color: t.text }}>
@@ -145,7 +145,7 @@ const Notifications = () => {
         )}
       </div>
  
-      {/* Empty state */}
+    
       {notifications.length === 0 ? (
         <div
           className="text-center mt-20 p-10 rounded-2xl border"
@@ -219,7 +219,7 @@ const Notifications = () => {
             ))}
           </ul>
  
-          {/* Infinite scroll sentinel */}
+         
           <div ref={bottomRef} className="py-4 flex justify-center">
             {loadingMore && <Loader />}
             {!hasMore && notifications.length > PAGE_SIZE && (

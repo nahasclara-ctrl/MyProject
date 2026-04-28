@@ -69,7 +69,7 @@ export type INewUser = {
 };
 
 export type AppwritePost = Models.Document & {
-  userId: string;       // who created the post
+  userId: string;       
   caption: string;
   tags: string[];
   imageUrl: string;
@@ -81,7 +81,7 @@ export type AppwritePost = Models.Document & {
 };
 
 export type Post = AppwritePost & {
-  creator?: {           // optional, fetched later for display
+  creator?: {       
     $id: string;
     name: string;
     imageUrl: string;

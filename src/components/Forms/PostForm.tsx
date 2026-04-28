@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import FileUploader from "../shared/FileUploader";
+import FileUploader from "../shared/fileUploader";
 import { PostValidation } from "@/_root/pages";
 import { Textarea } from "../ui/textarea";
 import type { Models } from "appwrite";
@@ -59,9 +59,9 @@ const PostForm = ({ post, action }: PostFormProps) => {
   const { user } = useUserContext();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { darkMode } = useTheme(); // ← only addition
+  const { darkMode } = useTheme(); 
 
-  // ── Theme tokens ──────────────────────────────────────────────
+ 
   const t = {
     label:    darkMode ? D.subtext  : P[700],
     inputBg:  darkMode ? D.inputBg  : "#ffffff",
@@ -123,7 +123,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-9 w-full max-w-5xl"
       >
-        {/* Caption */}
+       
         <FormField
           control={form.control}
           name="caption"
@@ -142,7 +142,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
           )}
         />
 
-        {/* File Upload */}
+       
         <FormField
           control={form.control}
           name="file"
@@ -162,7 +162,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
           )}
         />
 
-        {/* Location */}
+      
         <FormField
           control={form.control}
           name="location"
@@ -182,7 +182,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
           )}
         />
 
-        {/* Tags */}
+        
         <FormField
           control={form.control}
           name="tags"
@@ -205,7 +205,7 @@ const PostForm = ({ post, action }: PostFormProps) => {
           )}
         />
 
-        {/* Buttons */}
+      
         <div className="flex gap-4 justify-end">
           <Button
             type="button"

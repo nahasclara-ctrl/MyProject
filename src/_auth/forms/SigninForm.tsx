@@ -268,12 +268,12 @@ const SigninForm = () => {
       <Form {...form}>
         <div className="b-wrap">
 
-          {/* Network nodes */}
+         
           {["n1","n2","n3","n4","n5","n6","n7","n8","n9"].map(n => (
             <div key={n} className={`b-node ${n}`} />
           ))}
 
-          {/* Connection lines */}
+         
           <svg className="b-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
             <line x1="5" y1="7" x2="16" y2="13" />
             <line x1="16" y1="13" x2="28" y2="5" />

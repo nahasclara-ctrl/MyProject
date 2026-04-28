@@ -35,7 +35,7 @@ const PostStats = ({ post, userId, showStats = true }: PostStatsProps) => {
   const { mutate: savePost, isPending: isSaving } = useSavePost();
   const { mutate: deleteSavedPost, isPending: isDeleting } = useDeletSavedPost();
  
-  // Sync saved state from Appwrite
+  
   useEffect(() => {
     if (!currentUser?.save || isLoadingUser) {
       setIsSaved(false);
@@ -43,7 +43,7 @@ const PostStats = ({ post, userId, showStats = true }: PostStatsProps) => {
       return;
     }
  
-    // Find ALL records for this post
+   
     const allRecordsForPost = currentUser.save.filter((r: any) => {
       const recordPostId = typeof r.post === "string" ? r.post : r.post?.$id;
       return recordPostId === post.$id;
@@ -91,14 +91,14 @@ const PostStats = ({ post, userId, showStats = true }: PostStatsProps) => {
     console.log("Post:", post.$id);
     console.log("===============================================");
  
-    // Prevent multiple clicks
+    
     if (isSaving || isDeleting || isLoadingUser || isPending) {
       console.warn("⏳ BLOCKED: Already pending/loading");
       return;
     }
  
     if (isSaved && savedRecordIds.length > 0) {
-      // UNSAVE
+      
       console.log(`\n🗑️ ACTION: UNSAVE`);
       console.log(`Deleting ${savedRecordIds.length} record(s):`, savedRecordIds);
  
@@ -122,7 +122,6 @@ const PostStats = ({ post, userId, showStats = true }: PostStatsProps) => {
         });
       });
  
-      // Refetch after a delay to allow mutations to complete
       setTimeout(() => {
         console.log("\n🔄 Refetching queries...");
         queryClient.invalidateQueries({
@@ -189,7 +188,7 @@ const PostStats = ({ post, userId, showStats = true }: PostStatsProps) => {
  
   return (
     <div className="flex justify-between items-center z-20">
-      {/* Like button - only show if showStats is true */}
+    
       {showStats && (
         <div className="flex gap-2 mr-5">
           <img
@@ -204,7 +203,7 @@ const PostStats = ({ post, userId, showStats = true }: PostStatsProps) => {
         </div>
       )}
  
-      {/* Save button */}
+      
       <div className="flex gap-2">
         <img
           src={isSaved ? "/assets/icons/saved.svg" : "/assets/icons/save.svg"}

@@ -1,9 +1,6 @@
 import { ID, Query } from "appwrite";
 import { databases, CONFIG, client } from "./config";
 
-// ============================================================
-// TYPES
-// ============================================================
 
 export interface Circle {
   $id: string;
@@ -27,9 +24,6 @@ export interface Message {
 
 export type MoodType = "happy" | "sad" | "stressed" | "bored" | "chill";
 
-// ============================================================
-// ERROR HANDLING UTILITIES
-// ============================================================
 
 export class AppwriteError extends Error {
   public code: string;
@@ -87,9 +81,7 @@ function parseAppwriteError(error: unknown): { code: string; message: string } {
   };
 }
 
-// ============================================================
-// JOIN OR CREATE CIRCLE
-// ============================================================
+
 
 export async function joinCircle(userId: string, mood: MoodType): Promise<Circle> {
   try {
@@ -106,7 +98,6 @@ export async function joinCircle(userId: string, mood: MoodType): Promise<Circle
       [
         Query.equal("mood", mood),
         Query.equal("isActive", true),
-                                        //Query.lessThan("currentMembers", 5),
         Query.orderAsc("$createdAt"),
         Query.limit(10),
       ]
@@ -146,7 +137,7 @@ export async function joinCircle(userId: string, mood: MoodType): Promise<Circle
         {
           mood,
           members: [userId],
-          maxMembers: 0, // 0 = unlimited
+          maxMembers: 0, 
           currentMembers: 1,
           isActive: true,
           createdAt: new Date().toISOString(),
@@ -166,9 +157,6 @@ export async function joinCircle(userId: string, mood: MoodType): Promise<Circle
   }
 }
 
-// ============================================================
-// GET CIRCLE MESSAGES
-// ============================================================
 
 export async function getCircleMessages(circleId: string): Promise<Message[]> {
   try {
@@ -190,9 +178,7 @@ export async function getCircleMessages(circleId: string): Promise<Message[]> {
   }
 }
 
-// ============================================================
-// SEND MESSAGE
-// ============================================================
+
 
 export async function sendCircleMessage(
   circleId: string,
@@ -227,9 +213,6 @@ export async function sendCircleMessage(
   }
 }
 
-// ============================================================
-// SUBSCRIBE TO REAL-TIME MESSAGES
-// ============================================================
 
 export function subscribeToCircleMessages(
   circleId: string,
@@ -256,9 +239,7 @@ export function subscribeToCircleMessages(
   return unsubscribe;
 }
 
-// ============================================================
-// LEAVE CIRCLE
-// ============================================================
+
 
 export async function leaveCircle(circleId: string, userId: string): Promise<boolean> {
   try {
@@ -291,9 +272,7 @@ export async function leaveCircle(circleId: string, userId: string): Promise<boo
   }
 }
 
-// ============================================================
-// GET CIRCLE BY ID
-// ============================================================
+
 
 export async function getCircleById(circleId: string): Promise<Circle> {
   try {

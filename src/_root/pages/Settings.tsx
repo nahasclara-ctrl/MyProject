@@ -4,23 +4,23 @@ import { useTheme } from "@/context/ThemeProvider";
 import { getCurrentUser, updateUserProfile, changePassword } from "@/lib/appwrite/api";
 
 
-// ─── Color palettes ───────────────────────────────────────────────
+
 const P = {
   50: "#f6fbf8", 100: "#eaf5ef", 200: "#d6ebe0",
   300: "#b7dcc8", 400: "#7bbf9a", 500: "#4f9f75",
   600: "#3f8a63", 700: "#2f6e4f",
 };
 
-// Dark mode overrides
+
 const D = {
-  bg:         "#0f1a14",   // page background
-  surface:    "#1a2b20",   // cards / modals
-  border:     "#2a3f30",   // borders
-  text:       "#d6ebe0",   // primary text
-  subtext:    "#7bbf9a",   // secondary text
-  muted:      "#3a5444",   // muted / disabled
-  hover:      "#1e3326",   // row hover
-  inputBg:    "#152019",   // input background
+  bg:         "#0f1a14",   
+  surface:    "#1a2b20",   
+  border:     "#2a3f30",   
+  text:       "#d6ebe0",   
+  subtext:    "#7bbf9a",   
+  muted:      "#3a5444",  
+  hover:      "#1e3326",   
+  inputBg:    "#152019", 
 };
 
 type ModalKey =
@@ -111,7 +111,7 @@ const Settings = () => {
   const initials = (user?.name ?? "?")
     .split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
 
-  // ── Computed theme tokens ──────────────────────────────────────
+  
   const t = {
     pageBg:    darkMode ? D.bg      : `linear-gradient(180deg, ${P[50]}, #ffffff)`,
     surface:   darkMode ? D.surface : "#fff",
@@ -137,7 +137,7 @@ const Settings = () => {
           <p className="text-sm mt-1" style={{ color: t.muted }}>Manage your account and preferences</p>
         </div>
 
-        {/* Profile card */}
+       
         <div
           className="flex items-center gap-4 p-4 rounded-2xl border"
           style={{ borderColor: t.border, background: t.surface }}
@@ -177,7 +177,7 @@ const Settings = () => {
 
       </div>
 
-      {/* ── Modals ── */}
+      
       <Modal open={activeModal === "edit-profile"} onClose={close} darkMode={darkMode} t={t}
         title="Edit Profile" subtitle="Changes will show across the whole app">
         <ModalInput label="Full name" value={profileName} onChange={setProfileName} placeholder="Full name" t={t} />
@@ -243,7 +243,7 @@ const Settings = () => {
   );
 };
 
-// ─── Sub-components ───────────────────────────────────────────────
+
 
 const Section = ({ title, children, t }: { title: string; children: React.ReactNode; t: any }) => (
   <div>

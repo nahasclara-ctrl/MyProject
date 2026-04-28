@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getUsersByIds } from "@/lib/appwrite/api";
 import { useTheme } from "@/context/ThemeProvider";
 
-/* COLORS */
+
 const P = {
   50: "#f6fbf8", 100: "#eaf5ef", 200: "#d6ebe0",
   300: "#b7dcc8", 400: "#7bbf9a", 500: "#4f9f75",
@@ -95,7 +95,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen" style={{ background: t.pageBg }}>
 
-      {/* PROFILE */}
+     
       <div className="max-w-5xl mx-auto px-6 pt-10">
         <div className="rounded-2xl border p-8 flex flex-col md:flex-row gap-8"
              style={{ background: t.surface, borderColor: t.border }}>
@@ -141,7 +141,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* POSTS */}
+    
       <div className="max-w-5xl mx-auto grid grid-cols-3 gap-2 mt-8 px-2">
         {posts?.documents?.map((p: any) => (
           <img
@@ -153,7 +153,7 @@ const Profile = () => {
         ))}
       </div>
 
-      {/* MODAL */}
+      
       {showFollowers && (
         <Modal
           title="Followers"
@@ -181,7 +181,7 @@ const Profile = () => {
   );
 };
 
-/* ================= MODAL ================= */
+
 const Modal = ({ title, users, search, setSearch, onClose, darkMode, t }: any) => {
   const navigate = useNavigate();
 
@@ -197,14 +197,14 @@ const Modal = ({ title, users, search, setSearch, onClose, darkMode, t }: any) =
       <div className="w-full max-w-xl rounded-2xl flex flex-col overflow-hidden"
            style={{ background: t.surface, maxHeight: "75vh" }}>
 
-        {/* HEADER */}
+        
         <div className="sticky top-0 flex justify-between px-5 py-4 border-b"
              style={{ background: t.surface, borderColor: t.border }}>
           <h3 style={{ color: t.text }}>{title}</h3>
           <button onClick={onClose}>✕</button>
         </div>
 
-        {/* SEARCH */}
+       
         <div className="sticky top-[60px] px-5 py-3 border-b"
              style={{ background: t.surface, borderColor: t.border }}>
           <input
@@ -215,7 +215,7 @@ const Modal = ({ title, users, search, setSearch, onClose, darkMode, t }: any) =
           />
         </div>
 
-        {/* LIST */}
+        
         <div className="overflow-y-auto flex-1">
           {filteredUsers?.map((u: any) => (
             <div

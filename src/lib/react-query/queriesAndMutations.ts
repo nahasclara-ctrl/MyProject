@@ -24,18 +24,14 @@ import { QUERY_KEYS } from "@/lib/react-query/queryKeys";
 import { getFollowingPosts } from "../appwrite/api";
 import { getSavedPosts } from "../appwrite/api";
 
-// ----------------------------
-// Create Account Mutation
-// ----------------------------
+
 export const useCreateUserAccount = () => {
   return useMutation({
     mutationFn: (user: INewUser) => createUserAccount(user),
   });
 };
 
-// ----------------------------
-// Sign In Mutation
-// ----------------------------
+
 export const useSignInAccount = () => {
   return useMutation({
     mutationFn: (user: { email: string; password: string }) =>
@@ -43,27 +39,23 @@ export const useSignInAccount = () => {
   });
 };
 
-// ----------------------------
-// Sign Out Mutation
-// ----------------------------
+
 export const useSignOutAccount = () => {
   return useMutation({
     mutationFn: () => signOutAccount(),
   });
 };
 
-// ----------------------------
-// Create Post Mutation
-// ----------------------------
+
 export const useCreatePost = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (post: INewPost) => createPost(post), // ← comma added
+    mutationFn: (post: INewPost) => createPost(post),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["getRecentPosts"], // should be array
+        queryKey: ["getRecentPosts"], 
       
       });
     },
@@ -204,7 +196,7 @@ export const useSearchPosts = (searchTerm: string) => {
     enabled: !!searchTerm,
   });
 };
-//i add this for the profile 
+
 export const useGetUserById = (userId: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_USER_BY_ID, userId],
@@ -234,7 +226,7 @@ export const useGetExplorePosts = (currentUserId: string) => {
     queryFn: ({ pageParam }: { pageParam: string | null }) =>
       getInfinitePosts({
         pageParam,
-        excludeUserId: currentUserId,  // only exclude yourself
+        excludeUserId: currentUserId, 
       }),
     getNextPageParam: (lastPage: any) => {
       if (!lastPage || lastPage.documents.length < 10) return undefined;
@@ -259,7 +251,7 @@ export const useGetFollowingPosts = (currentUser: any) => {
     initialPageParam: null,
   });
 };
-import { searchUsers } from "../appwrite/api"; // add to existing import line
+import { searchUsers } from "../appwrite/api";
 import { CONFIG, databases } from "../appwrite/config";
 import { ID, Query } from "appwrite";
  

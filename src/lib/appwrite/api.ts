@@ -3,7 +3,7 @@ import type { INewPost, INewUser, IUpdatePost } from "@/types";
 import { appwriteConfig, account, databases, storage, avatars } from "./config";
 
 
-// Create User Account
+
 export async function createUserAccount(user: INewUser) {
   try {
     const newAccount = await account.create(
@@ -22,7 +22,7 @@ export async function createUserAccount(user: INewUser) {
 
     const avatarUrl = avatars.getInitials(user.name);
 
-    // ✅ ADD BIO HERE
+    
     await saveUserToDB({
       accountId: newAccount.$id,
       email: newAccount.email,
@@ -39,9 +39,7 @@ export async function createUserAccount(user: INewUser) {
   }
 }
 
-// ----------------------------
-// Save User to Database
-// ----------------------------
+
 export async function saveUserToDB(user: {
   accountId: string;
   email: string;
@@ -52,9 +50,7 @@ export async function saveUserToDB(user: {
  
 }) {
   try {
-    //console.log("DB ID:", appwriteConfig.databaseId);
-    //console.log("Collection ID:", appwriteConfig.usersCollectionId);
-    //console.log("User Data:", user);
+   
     const newUser = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.usersCollectionId,
@@ -65,17 +61,15 @@ export async function saveUserToDB(user: {
   } catch (error) {
     console.error("saveUserToDb Failed:", error);
     throw error;
-    //hon badal return null hattayna ha la nshuf shu lmshkle le ma aam taaml run 
+    
   }
 }
 
-// ----------------------------
-// Sign In
-// ----------------------------
+
 export async function signInAccount(user: { email: string; password: string }) {
   try {
     try{
-    await account.deleteSession("current");// // Clear existing session before signing in
+    await account.deleteSession("current");
   } catch (e) {
   }
   const session = await account.createEmailPasswordSession({
@@ -88,10 +82,7 @@ export async function signInAccount(user: { email: string; password: string }) {
     return null;
   }
 }
-// ----------------------------
-// Get Current User
-// ----------------------------
-// REPLACE your getCurrentUser function in src/lib/appwrite/api.ts with this:
+
 
 
 export async function getCurrentUser() {
@@ -110,7 +101,7 @@ export async function getCurrentUser() {
 
     const user = currentUser.documents[0];
 
-    // Populate saves
+   
     if (user.save && user.save.length > 0) {
       const populatedSaves = await Promise.all(
         user.save.map(async (saveDoc: any) => {
@@ -134,7 +125,7 @@ export async function getCurrentUser() {
       user.save = populatedSaves;
     }
 
-    // ── NEW: fetch this user's posts with their likes ──────────
+    
     const userPosts = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.postCollectionId,
@@ -145,17 +136,14 @@ export async function getCurrentUser() {
       ]
     );
     user.posts = userPosts.documents;
-    // ───────────────────────────────────────────────────────────
-
+    
     return user;
   } catch (error) {
     console.error(error);
     return null;
   }
 }
-// ----------------------------
-// Logout
-// ----------------------------
+
 export async function signOutAccount() {
   try {
     const session = await account.deleteSession("current");
@@ -166,9 +154,7 @@ export async function signOutAccount() {
   }
 }
 
-// ----------------------------
-// Upload File
-// ----------------------------
+
 export async function uploadFile(file: File) {
   try {
     const uploadedFile = await storage.createFile(
@@ -184,8 +170,7 @@ export async function uploadFile(file: File) {
 }
 
 
-// ----------------------------
-// Get File Preview
+
 export function getFilePreview(fileId: string) {
   try {
     const fileUrl = storage.getFileView(
@@ -198,9 +183,7 @@ export function getFilePreview(fileId: string) {
     return null;
   }
 }
-// ----------------------------
-// Delete File
-// ----------------------------
+
 export async function deleteFile(fileId: string) {
   try {
     await storage.deleteFile(appwriteConfig.storageId, fileId);
@@ -211,17 +194,15 @@ export async function deleteFile(fileId: string) {
   }
 }
 
-// ----------------------------
-// Create Post
-// ----------------------------
+
 export async function createPost(post: INewPost) {
   if (!post.file || post.file.length === 0) throw new Error("No file provided");
 
-  // 1️⃣ Upload first file (you can loop for multiple)
+  
   const uploaded = await uploadFile(post.file[0]); 
   if (!uploaded) throw new Error("File upload failed");
 
-  // 2️⃣ Get preview URL
+  
   const fileUrl = storage.getFileView(
     appwriteConfig.storageId,
     uploaded.$id
@@ -231,7 +212,7 @@ export async function createPost(post: INewPost) {
     throw new Error("Failed to get file preview");
   }
 
-  // 3️⃣ Create post document
+ 
   const newPostDoc = await databases.createDocument(
     appwriteConfig.databaseId,
     appwriteConfig.postCollectionId,
@@ -259,7 +240,7 @@ export async function getRecentPosts() {
       ]
     );
 
-    // For each post, fetch the creator info manually
+  
     const postsWithCreators = await Promise.all(
       posts.documents.map(async (post) => {
         const creator = await databases.getDocument(
@@ -288,7 +269,7 @@ export async function likePost(postId: string, likesArray: string[], currentUser
     );
     if (!updatedPost) throw new Error("Failed to like post");
 
-    // Fetch post to get creator + image info
+  
     const post = await databases.getDocument(
       appwriteConfig.databaseId,
       appwriteConfig.postCollectionId,
@@ -297,8 +278,7 @@ export async function likePost(postId: string, likesArray: string[], currentUser
 
     const creatorId = typeof post.creator === "string" ? post.creator : post.creator?.$id;
 
-    // If liking (user is in new array) → create notification
-    // If unliking (user removed from array) → delete notification
+    
     if (likesArray.includes(currentUser.$id)) {
       await createNotification({
         receiverId: creatorId,
@@ -385,11 +365,11 @@ export async function updatePost(post:IUpdatePost) {
       imageId:post.imageId,
     }
     if(hasFileToUpdate){
-      // 1️⃣ Upload the file
+     
       const uploaded = await uploadFile(post.file[0]);
     if (!uploaded) throw new Error("File upload failed");
 
-    // 2️⃣ Get file preview URL
+  
     const fileUrl = await getFilePreview(uploaded.$id);
     if (!fileUrl) {
       await deleteFile(uploaded.$id);
@@ -403,10 +383,9 @@ export async function updatePost(post:IUpdatePost) {
 
   }  
   
-    // 3️⃣ Process tags
+    
     const tags = post.tags || [];
 
-    // 4️⃣ Create post document
     const updatedPost = await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.postCollectionId,
@@ -445,7 +424,7 @@ export async function deletePost(postId:string, imageId:string){
     console.log(error)
   }
 }
-// api.ts
+
 
 export async function getInfinitePosts({
   pageParam,
@@ -461,7 +440,7 @@ export async function getInfinitePosts({
 
   if (pageParam) queries.push(Query.cursorAfter(pageParam));
 
-  // exclude only the current logged-in user's posts
+ 
   if (excludeUserId) {
     queries.push(Query.notEqual("creator", excludeUserId));
   }
@@ -500,7 +479,7 @@ export async function searchPosts(searchTerm: string) {
 
     if (!posts) throw new Error("Failed to search posts");
 
-    // Same enrichment — search results also need the creator object
+   
     const postsWithCreators = await Promise.all(
       posts.documents.map(async (post) => {
         try {
@@ -573,8 +552,7 @@ export async function getUsers(limit?: number) {
     return null;
   }
 }
-// ADD THIS FUNCTION to your api.ts file (src/lib/appwrite/api.ts)
-// This fetches posts only from users you follow, for the Home feed
+
 
 export async function getFollowingPosts({
   pageParam,
@@ -602,7 +580,7 @@ export async function getFollowingPosts({
     queries
   );
 
-  // I  ADD THIS PART
+  
   const postsWithCreators = await Promise.all(
     posts.documents.map(async (post) => {
       const creator = await databases.getDocument(
@@ -633,7 +611,7 @@ export async function searchUsers(searchTerm: string) {
       [Query.search("username", searchTerm)]
     );
 
-    // Merge and deduplicate
+  
     const merged = [...byName.documents];
     byUsername.documents.forEach((u) => {
       if (!merged.find((m) => m.$id === u.$id)) merged.push(u);
@@ -655,7 +633,7 @@ export async function getUsersByIds(ids: string[]) {
       [Query.equal("$id", ids)]
     );
 
-    return res.documents; //  must be documents
+    return res.documents;
   } catch (error) {
     console.error("getUsersByIds failed:", error);
     return [];
@@ -685,22 +663,19 @@ export async function changePassword({
 }
 export async function deleteUserAccount(userId: string) {
   try {
-    // Delete all sessions first (logs out everywhere)
+    
     await account.deleteSessions();
   } catch (e) {
-    // ignore if already gone
+   
   }
-  // Appwrite client SDK cannot delete the auth user itself —
-  // only the Server SDK (with API key) can. So we delete the
-  // DB document and clear sessions. For full auth deletion
-  // you still need the Appwrite Function (as your comment says).
+  
   await databases.deleteDocument(
     appwriteConfig.databaseId,
     appwriteConfig.usersCollectionId,
     userId
   );
 }
-// ── Create a notification ──────────────────────────────────────
+
 export async function createNotification({
   receiverId, senderId, type, postId, postImg, caption, senderName, senderImg,
 }: {
@@ -708,10 +683,10 @@ export async function createNotification({
   postId?: string; postImg?: string; caption?: string;
   senderName: string; senderImg?: string;
 }) {
-  // Don't notify yourself
+  
   if (receiverId === senderId) return;
 
-  // Avoid duplicate like notifications
+  
   if (type === "like") {
     const existing = await databases.listDocuments(
       appwriteConfig.databaseId,
@@ -734,7 +709,7 @@ export async function createNotification({
   );
 }
 
-// ── Delete a like notification (on unlike) ────────────────────
+
 export async function deleteLikeNotification(senderId: string, postId: string) {
   const existing = await databases.listDocuments(
     appwriteConfig.databaseId,
@@ -754,7 +729,7 @@ export async function deleteLikeNotification(senderId: string, postId: string) {
   }
 }
 
-// ── Get notifications for a user ──────────────────────────────
+
 export async function getNotifications(
   userId: string,
   limit: number = 20,
@@ -777,7 +752,7 @@ export async function getNotifications(
   );
 }
 
-// ── Mark all as read ──────────────────────────────────────────
+
 export async function markNotificationsRead(userId: string) {
   const unread = await databases.listDocuments(
     appwriteConfig.databaseId,
@@ -795,9 +770,8 @@ export async function markNotificationsRead(userId: string) {
     )
   );
 }
-// ── Add these functions to your api.ts ────────────────────────
 
-// Get count of unread messages for a user (from all senders)
+
 export async function getUnreadMessageCounts(userId: string): Promise<Record<string, number>> {
   try {
     const res = await databases.listDocuments(
@@ -816,7 +790,7 @@ export async function getUnreadMessageCounts(userId: string): Promise<Record<str
     return counts;
   } catch (error) {
     console.error("getUnreadMessageCounts failed:", error);
-    return {}; // ← return empty instead of crashing
+    return {};
   }
 }
 
@@ -847,7 +821,6 @@ export async function markMessagesRead(senderId: string, receiverId: string) {
   }
 }
 
-// Get the latest message between two users (for conversation preview)
 export async function getLatestMessage(userId1: string, userId2: string) {
   const [res1, res2] = await Promise.all([
     databases.listDocuments(

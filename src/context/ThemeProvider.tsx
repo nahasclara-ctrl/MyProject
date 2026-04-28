@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 type ThemeCtx = { darkMode: boolean; toggleDark: () => void };
 const ThemeContext = createContext<ThemeCtx>({ darkMode: false, toggleDark: () => {} });
 
-// ── Routes that should never be affected by dark mode ──
+
 const EXCLUDED_ROUTES = ["/sign-in", "/sign-up"];
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {

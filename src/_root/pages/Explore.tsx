@@ -48,7 +48,7 @@ const Explore = () => {
 
   return (
     <div style={{ minHeight: "100vh", width: "100%", background: bg, padding: "32px 24px", transition: "background 0.3s" }}>
-      {/* HEADER */}
+     
       <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20, marginBottom: 40 }}>
         <h2 style={{ color: text, fontSize: 28, fontWeight: 700 }}>Search Posts</h2>
         <div style={{ display: "flex", alignItems: "center", gap: 12, background: inputBg, backdropFilter: "blur(10px)", border: `1px solid ${border}`, borderRadius: 16, padding: "12px 16px" }}>

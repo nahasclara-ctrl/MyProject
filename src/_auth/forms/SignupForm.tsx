@@ -25,7 +25,7 @@ import { useState } from "react";
 import { createUserAccount } from "@/lib/appwrite/api";
 import { useUserContext } from "@/context/AuthContext";
 
-/* SAME STYLE AS SIGNIN */
+
 const STYLES = `
 
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
@@ -165,7 +165,7 @@ const STYLES = `
 }
 `;
 
-/* TYPES */
+
 type FormValues = z.infer<typeof SignupValidation>;
 
 const SignupForm = () => {
@@ -239,7 +239,7 @@ const SignupForm = () => {
             <h2 className="b-headline">Create account ✨</h2>
             <p className="b-sub">Join us today</p>
 
-            {/* NAME */}
+            
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem className="b-field">
                 <FormLabel className="b-label">Name</FormLabel>
@@ -250,7 +250,7 @@ const SignupForm = () => {
               </FormItem>
             )} />
 
-            {/* USERNAME */}
+           
             <FormField control={form.control} name="username" render={({ field }) => (
               <FormItem className="b-field">
                 <FormLabel className="b-label">Username</FormLabel>
@@ -261,7 +261,7 @@ const SignupForm = () => {
               </FormItem>
             )} />
 
-            {/* EMAIL */}
+            
             <FormField control={form.control} name="email" render={({ field }) => (
               <FormItem className="b-field">
                 <FormLabel className="b-label">Email</FormLabel>
@@ -272,7 +272,7 @@ const SignupForm = () => {
               </FormItem>
             )} />
 
-            {/* PASSWORD */}
+            
             <FormField control={form.control} name="password" render={({ field }) => (
               <FormItem className="b-field">
                 <FormLabel className="b-label">Password</FormLabel>
@@ -283,7 +283,7 @@ const SignupForm = () => {
               </FormItem>
             )} />
 
-            {/* CONFIRM */}
+           
             <FormField control={form.control} name="confirmPassword" render={({ field }) => (
               <FormItem className="b-field">
                 <FormLabel className="b-label">Confirm Password</FormLabel>

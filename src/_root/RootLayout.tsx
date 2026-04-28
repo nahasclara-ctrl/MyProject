@@ -37,17 +37,17 @@ const RootLayout = () => {
       className="w-full md:flex h-screen transition-colors duration-300"
       style={{ backgroundColor: darkMode ? D.bg : P[50] }}
     >
-      {/* TOP BAR */}
+    
       <div style={{ borderBottom: `1px solid ${darkMode ? D.border : P[200]}` }}>
         <Topbar />
       </div>
 
-      {/* SIDEBAR */}
+      
       <div style={{ borderRight: `1px solid ${darkMode ? D.border : P[200]}`, backgroundColor: darkMode ? D.surface : "#fff" }}>
         <LeftSidebar />
       </div>
 
-      {/* MAIN CONTENT */}
+      
       <section
         className="flex-1 h-full overflow-y-auto custom-scrollbar"
         style={{ background: darkMode ? D.bg : `linear-gradient(180deg, #ffffff, ${P[50]})` }}
@@ -55,7 +55,7 @@ const RootLayout = () => {
         <Outlet />
       </section>
 
-      {/* MOBILE BOTTOM BAR */}
+      
       <div style={{ borderTop: `1px solid ${darkMode ? D.border : P[200]}`, backgroundColor: darkMode ? D.surface : "#fff" }}>
         <Bottombar />
       </div>

@@ -1,12 +1,12 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-// Utility to combine Tailwind classes
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Convert date to "time ago" string
+
 export function formatDate(dateString: string): string {
   const currentDate = new Date();
   const inputDate = new Date(dateString);

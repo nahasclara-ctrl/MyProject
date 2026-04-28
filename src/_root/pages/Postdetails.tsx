@@ -27,11 +27,10 @@ const Postdetails = () => {
   const { id } = useParams();
   const { data: post, isPending } = useGetPostById(id || "");
   const { user } = useUserContext();
-  const { darkMode } = useTheme(); // ← only addition
+  const { darkMode } = useTheme(); 
 
   const handleDeletePost = () => {};
 
-  // ── Theme tokens ──────────────────────────────────────────────
   const t = {
     pageBg:  darkMode ? D.bg      : `linear-gradient(180deg, ${P[50]}, #ffffff)`,
     surface: darkMode ? D.surface : "#ffffff",
@@ -82,7 +81,7 @@ const Postdetails = () => {
         className="w-full max-w-4xl rounded-2xl overflow-hidden border shadow-sm transition-colors duration-300"
         style={{ borderColor: t.border, background: t.surface }}
       >
-        {/* IMAGE */}
+        
         {post.imageUrl && (
           <img
             src={post.imageUrl}
@@ -91,10 +90,10 @@ const Postdetails = () => {
           />
         )}
 
-        {/* CONTENT */}
+        
         <div className="p-6 flex flex-col gap-5">
 
-          {/* HEADER */}
+          
           <div className="flex justify-between items-start">
             {post.creator && (
               <Link
@@ -118,7 +117,7 @@ const Postdetails = () => {
               </Link>
             )}
 
-            {/* ACTIONS */}
+           
             <div className="flex items-center gap-3">
               {isOwner && (
                 <>
@@ -145,10 +144,10 @@ const Postdetails = () => {
             </div>
           </div>
 
-          {/* DIVIDER */}
+         
           <div className="h-px" style={{ backgroundColor: t.divider }} />
 
-          {/* CAPTION */}
+         
           <div className="space-y-3">
             <p style={{ color: t.caption }}>{post?.caption}</p>
             <ul className="flex flex-wrap gap-2">
@@ -168,7 +167,7 @@ const Postdetails = () => {
             </ul>
           </div>
 
-          {/* STATS */}
+          
           <div className="pt-4 border-t" style={{ borderColor: t.divider }}>
             <PostStats
               post={post as unknown as AppwritePost}

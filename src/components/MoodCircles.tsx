@@ -131,10 +131,7 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
     }
   };
 
-  // ============================================================
-  // MOOD SELECTION
-  // ============================================================
-
+  
   if (!currentCircle) {
     return (
       <div style={{ padding: 24, background: P[50], minHeight: "100vh" }}>
@@ -187,9 +184,7 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
 
   const moodInfo = MOODS[currentCircle.mood as MoodType];
 
-  // ============================================================
-  // CHAT UI
-  // ============================================================
+
 
   return (
     <div
@@ -200,7 +195,7 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
         background: P[50],
       }}
     >
-      {/* HEADER */}
+   
       <div
         style={{
           padding: 14,
@@ -240,7 +235,7 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
         </button>
       </div>
 
-      {/* MESSAGES */}
+      
       <div style={{ flex: 1, padding: 14, overflowY: "auto" }}>
         {messages.map((message) => {
           const isMe = message.senderId === userId;
@@ -274,7 +269,7 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* INPUT */}
+      
       <form
         onSubmit={handleSendMessage}
         style={{

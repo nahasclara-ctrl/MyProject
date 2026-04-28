@@ -3,7 +3,6 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useUserContext } from "@/context/AuthContext";
 import MoodModal from "@/components/MoodModal";
 import { useTheme } from "@/context/ThemeProvider";
-// ADD this import
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
 const P = {
@@ -155,7 +154,7 @@ const { unreadCount: unreadNotifications } = useUnreadNotifications();
       }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
-          {/* LOGO */}
+         
           <div style={{ display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between" }}>
             {!collapsed && (
               <Link to="/">
@@ -178,7 +177,7 @@ const { unreadCount: unreadNotifications } = useUnreadNotifications();
 
           <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${darkMode ? D.border : P[200]}, transparent)` }} />
 
-          {/* PROFILE */}
+          
           <Link
             to={`/profile/${user.id}`}
             style={{
@@ -205,7 +204,7 @@ const { unreadCount: unreadNotifications } = useUnreadNotifications();
             )}
           </Link>
 
-          {/* NAV */}
+         
           <ul style={{ listStyle: "none", padding: 0 }}>
             {navItems.map((item) => {
               if (item.kind === "action") {
@@ -229,7 +228,7 @@ const { unreadCount: unreadNotifications } = useUnreadNotifications();
           </ul>
         </div>
 
-        {/* LOGOUT */}
+        
         <button
           onClick={logout}
           style={{

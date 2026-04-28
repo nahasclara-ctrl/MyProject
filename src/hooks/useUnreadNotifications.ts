@@ -7,7 +7,7 @@ export function useUnreadNotifications() {
   const { user } = useUserContext();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Initial fetch
+ 
   useEffect(() => {
     if (!user.$id) return;
     getNotifications(user.$id).then((res) => {
@@ -15,7 +15,7 @@ export function useUnreadNotifications() {
     });
   }, [user.$id]);
 
-  // Realtime: increment on new notification, decrement on delete
+  
   useEffect(() => {
     if (!user.$id) return;
 
@@ -31,7 +31,7 @@ export function useUnreadNotifications() {
         setUnreadCount((c) => c + 1);
       }
       if (event.includes("update") && doc.read) {
-        // marked as read — reset to 0 (markNotificationsRead marks all)
+        
         setUnreadCount(0);
       }
       if (event.includes("delete")) {
@@ -42,7 +42,7 @@ export function useUnreadNotifications() {
     return () => unsub();
   }, [user.$id]);
 
-  // Reset to 0 when user visits /notifications (handled externally via resetUnread)
+  
   const resetUnread = () => setUnreadCount(0);
 
   return { unreadCount, resetUnread };

@@ -19,7 +19,7 @@ const PostCard = ({ post }: PostCardProps) => {
       flex flex-col gap-3
     ">
 
-      {/* Header */}
+      
       <div className="flex justify-between items-center">
 
         <div className="flex items-center gap-3">
@@ -36,12 +36,12 @@ const PostCard = ({ post }: PostCardProps) => {
 
           <div className="flex flex-col">
 
-            {/* 👤 NAME (NO BLACK) */}
+            
             <p className="base-medium text-[#4b7f73] font-semibold">
               {post.creator?.name || "Unknown"}
             </p>
 
-            {/* 🌿 META */}
+           
             <div className="flex gap-2 text-sm text-[#9ccfc3]">
 
               <p>
@@ -59,7 +59,7 @@ const PostCard = ({ post }: PostCardProps) => {
 
         </div>
 
-        {/* Edit */}
+        
         {user?.id === post.creator?.$id && (
           <Link to={`/update-post/${post.$id}`}>
             <img
@@ -73,12 +73,12 @@ const PostCard = ({ post }: PostCardProps) => {
 
       </div>
 
-      {/* Caption */}
+      
       <Link to={`/posts/${post.$id}`} className="block">
 
         <div className="py-3">
 
-          {/* 🧠 TEXT (NO BLACK) */}
+          
           <p className="text-[#6faea2] leading-relaxed">
             {post.caption}
           </p>
@@ -113,7 +113,7 @@ const PostCard = ({ post }: PostCardProps) => {
 
       </Link>
 
-      {/* Stats */}
+    
       <PostStats post={post} userId={user?.id || ""} />
 
     </div>

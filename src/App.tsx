@@ -30,13 +30,12 @@ const App = () => {
     <SavedPostsProvider>
       <main className="flex h-screen">
         <Routes>
-          {/* Public routes */}
+          
           <Route element={<AuthLayout />}>
             <Route path="/sign-in" element={<SigninForm />} />
             <Route path="/sign-up" element={<SignupForm />} />
           </Route>
 
-          {/* Private routes with normal layout */}
           <Route element={<RootLayout />}>
             <Route index element={<Home />} />
             <Route path="/explore" element={<Explore />} />
@@ -52,7 +51,7 @@ const App = () => {
             <Route path="/notifications" element={<Notifications />} />
           </Route>
 
-          {/* Full-screen routes */}
+       
           <Route element={<FullPageLayout />}>
             <Route path="/settings" element={<Settings />} />
           </Route>

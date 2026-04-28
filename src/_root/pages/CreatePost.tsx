@@ -119,7 +119,7 @@ export default function CreatePost() {
       {toast && <ToastBanner toast={toast} onDismiss={() => setToast(null)} />}
 
       <div style={{ width: "100%", maxWidth: 560, background: card, borderRadius: 24, border: `1px solid ${border}`, overflow: "hidden", transition: "background 0.3s" }}>
-        {/* Header */}
+        
         <div style={{ padding: "20px 24px", borderBottom: `1px solid ${border}`, display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 32, height: 32, borderRadius: "50%", background: darkMode ? D.input : "#eaf5ef", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, stroke: "#4f9f75", fill: "none", strokeWidth: 2 }}>
@@ -132,7 +132,7 @@ export default function CreatePost() {
         </div>
 
         <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 24 }}>
-          {/* Drop Zone */}
+        
           {!preview ? (
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -170,7 +170,7 @@ export default function CreatePost() {
             </div>
           )}
 
-          {/* Caption */}
+        
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <label style={{ fontSize: 11, fontWeight: 600, color: "#3f8a63", textTransform: "uppercase", letterSpacing: "0.08em" }}>Caption</label>
             <textarea value={caption} onChange={(e) => setCaption(e.target.value.slice(0, MAX_CAPTION))} placeholder="Write a caption…" rows={3}
@@ -178,7 +178,7 @@ export default function CreatePost() {
             <p style={{ textAlign: "right", fontSize: 12, color: caption.length >= MAX_CAPTION ? "#f87171" : muted }}>{caption.length} / {MAX_CAPTION}</p>
           </div>
 
-          {/* Location */}
+          
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <label style={{ fontSize: 11, fontWeight: 600, color: "#3f8a63", textTransform: "uppercase", letterSpacing: "0.08em" }}>Location</label>
             <div style={{ display: "flex", gap: 8 }}>
@@ -188,7 +188,7 @@ export default function CreatePost() {
             </div>
           </div>
 
-          {/* Tags */}
+          
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <label style={{ fontSize: 11, fontWeight: 600, color: "#3f8a63", textTransform: "uppercase", letterSpacing: "0.08em" }}>Tags ({tags.length}/{MAX_TAGS})</label>
             <div style={{ minHeight: 48, padding: "8px 12px", borderRadius: 16, border: `1px solid ${border}`, background: inputBg, display: "flex", flexWrap: "wrap", gap: 8, cursor: "text" }}
@@ -208,7 +208,7 @@ export default function CreatePost() {
             <p style={{ fontSize: 12, color: muted }}>Press Enter, comma, or space to add a tag</p>
           </div>
 
-          {/* Actions */}
+         
           <div style={{ display: "flex", gap: 12, paddingTop: 8 }}>
             <button onClick={resetAll} disabled={loading} style={{ flex: 1, padding: "12px 0", borderRadius: 16, border: `1px solid ${border}`, background: "transparent", color: "#4f9f75", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
             <button onClick={handleSubmit} disabled={loading || !file} style={{ flex: 1, padding: "12px 0", borderRadius: 16, background: "#4f9f75", color: "#fff", fontSize: 14, fontWeight: 600, cursor: loading || !file ? "not-allowed" : "pointer", opacity: loading || !file ? 0.5 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, border: "none" }}>

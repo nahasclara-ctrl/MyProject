@@ -30,7 +30,7 @@ const Saved = () => {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
-  // ── Theme tokens ──────────────────────────────────────────────
+  
   const t = {
     pageBg:  darkMode ? D.bg      : `linear-gradient(180deg, ${P[50]}, #ffffff)`,
     surface: darkMode ? D.surface : "#fff",
@@ -63,7 +63,7 @@ const Saved = () => {
     fetchPosts();
   }, [savedDocs]);
 
-  /* ── Loading saved docs ── */
+  
   if (isLoading || isLoadingPosts) {
     return (
       <div className="flex items-center justify-center w-full h-full"
@@ -73,7 +73,7 @@ const Saved = () => {
     );
   }
 
-  /* ── Error ── */
+  
   if (error) {
     return (
       <div className="min-h-screen p-6" style={{ background: t.pageBg }}>
@@ -95,12 +95,12 @@ const Saved = () => {
     );
   }
 
-  /* ── Main ── */
+  
   return (
     <div className="min-h-screen px-6 py-8 transition-colors duration-300"
       style={{ background: t.pageBg, color: t.text }}>
 
-      {/* Header */}
+      
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold" style={{ color: t.text }}>
           Saved Posts{" "}
@@ -121,7 +121,7 @@ const Saved = () => {
         )}
       </div>
 
-      {/* Empty state */}
+    
       {savedPosts.length === 0 ? (
         <div className="mt-20 text-center rounded-2xl p-10 border"
           style={{ borderColor: t.border, backgroundColor: t.surface }}>
