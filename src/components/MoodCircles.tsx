@@ -21,6 +21,46 @@ const P = {
   700: "#2f6e4f",
 };
 
+// Distinct, accessible colors for anonymous users
+const USER_COLORS = [
+  { bg: "#4f9f75", text: "#ffffff", bubble: "#eaf5ef", bubbleText: "#2f6e4f" }, // green
+  { bg: "#6B9BD1", text: "#ffffff", bubble: "#EBF2FA", bubbleText: "#2D5A8E" }, // blue
+  { bg: "#E07B5A", text: "#ffffff", bubble: "#FAEEE9", bubbleText: "#8A3A1E" }, // orange
+  { bg: "#9B6BB5", text: "#ffffff", bubble: "#F2EBF8", bubbleText: "#5A2E7A" }, // purple
+  { bg: "#D4A84B", text: "#ffffff", bubble: "#FBF5E6", bubbleText: "#7A5510" }, // amber
+  { bg: "#5AACB5", text: "#ffffff", bubble: "#E8F7F8", bubbleText: "#1E6870" }, // teal
+  { bg: "#D46B8A", text: "#ffffff", bubble: "#FAEDF2", bubbleText: "#8A2A4A" }, // pink
+  { bg: "#7BA67B", text: "#ffffff", bubble: "#EDF4ED", bubbleText: "#2E5A2E" }, // sage
+];
+
+// Deterministic color index from userId string
+function getUserColorIndex(userId: string): number {
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = (hash * 31 + userId.charCodeAt(i)) >>> 0;
+  }
+  return hash % USER_COLORS.length;
+}
+
+function getUserColor(userId: string) {
+  return USER_COLORS[getUserColorIndex(userId)];
+}
+
+// Build a stable map of senderId -> short anonymous label within a circle
+function buildMemberLabels(messages: Message[], myUserId: string): Record<string, string> {
+  const seen: string[] = [];
+  for (const m of messages) {
+    if (!seen.includes(m.senderId) && m.senderId !== myUserId) {
+      seen.push(m.senderId);
+    }
+  }
+  const labels: Record<string, string> = {};
+  seen.forEach((id, i) => {
+    labels[id] = `Member ${i + 1}`;
+  });
+  return labels;
+}
+
 const MOODS: Record<MoodType, { emoji: string; color: string; label: string }> = {
   happy: { emoji: "😊", color: P[500], label: "Happy" },
   sad: { emoji: "😔", color: P[600], label: "Sad" },
@@ -49,6 +89,9 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const isJoiningRef = useRef(false);
+
+  // Build anon labels from current messages
+  const memberLabels = buildMemberLabels(messages, userId);
 
   useEffect(() => {
     if (initialMood && !currentCircle) {
@@ -120,9 +163,7 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
 
     try {
       if (unsubscribeRef.current) unsubscribeRef.current();
-
       await leaveCircle(currentCircle.$id, userId);
-
       setCurrentCircle(null);
       setMessages([]);
       setMessageInput("");
@@ -131,7 +172,6 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
     }
   };
 
-  
   if (!currentCircle) {
     return (
       <div style={{ padding: 24, background: P[50], minHeight: "100vh" }}>
@@ -184,8 +224,6 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
 
   const moodInfo = MOODS[currentCircle.mood as MoodType];
 
-
-
   return (
     <div
       style={{
@@ -195,7 +233,7 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
         background: P[50],
       }}
     >
-   
+      {/* Header */}
       <div
         style={{
           padding: 14,
@@ -208,7 +246,6 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 26 }}>{moodInfo.emoji}</span>
-
           <div>
             <div style={{ fontWeight: 800, color: P[700] }}>
               {currentCircle.mood}
@@ -235,29 +272,68 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
         </button>
       </div>
 
-      
+      {/* Messages */}
       <div style={{ flex: 1, padding: 14, overflowY: "auto" }}>
         {messages.map((message) => {
           const isMe = message.senderId === userId;
+          const color = getUserColor(message.senderId);
+          // Label: "You" for self, "Anon N" for others
+          const label = isMe ? "You" : (memberLabels[message.senderId] ?? "Member");
 
           return (
             <div
               key={message.$id}
               style={{
                 display: "flex",
-                justifyContent: isMe ? "flex-end" : "flex-start",
-                marginBottom: 10,
+                flexDirection: "column",
+                alignItems: isMe ? "flex-end" : "flex-start",
+                marginBottom: 12,
               }}
             >
+              {/* Avatar dot + label */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  marginBottom: 3,
+                  flexDirection: isMe ? "row-reverse" : "row",
+                }}
+              >
+                {/* Colored dot */}
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: color.bg,
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: color.bg,
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  {label}
+                </span>
+              </div>
+
+              {/* Bubble */}
               <div
                 style={{
                   maxWidth: 260,
-                  padding: 10,
-                  borderRadius: 14,
-                  background: isMe ? P[500] : "#ffffff",
-                  color: isMe ? "white" : P[700],
-                  border: isMe ? "none" : `1px solid ${P[200]}`,
-                  boxShadow: `0 4px 14px ${P[100]}`,
+                  padding: "9px 13px",
+                  borderRadius: isMe ? "16px 4px 16px 16px" : "4px 16px 16px 16px",
+                  background: isMe ? color.bg : color.bubble,
+                  color: isMe ? color.text : color.bubbleText,
+                  border: isMe ? "none" : `1.5px solid ${color.bg}33`,
+                  boxShadow: `0 2px 10px ${color.bg}22`,
+                  fontSize: 14,
+                  lineHeight: 1.5,
                 }}
               >
                 {message.content}
@@ -269,7 +345,7 @@ const MoodCircles: React.FC<MoodCirclesProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      
+      {/* Input */}
       <form
         onSubmit={handleSendMessage}
         style={{

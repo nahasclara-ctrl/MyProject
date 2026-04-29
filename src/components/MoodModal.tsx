@@ -3,7 +3,6 @@ import MoodCircles from "@/components/MoodCircles";
 
 type MoodType = "happy" | "sad" | "stressed" | "bored" | "chill";
 
-
 const P = {
   50: "#f6fbf8",
   100: "#eaf5ef",
@@ -28,7 +27,6 @@ interface Props {
   userDisplayName: string;
 }
 
-
 export default function MoodModal({ userId, userDisplayName }: Props) {
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [open, setOpen] = useState(true);
@@ -43,64 +41,147 @@ export default function MoodModal({ userId, userDisplayName }: Props) {
     setSelectedMood(mood);
   };
 
+  // Closed entirely
   if (!open) return null;
 
+  // Mood selected → show the chat
   if (selectedMood) {
     return (
-      <MoodCircles
-        userId={userId}
-        userDisplayName={userDisplayName}
-        initialMood={selectedMood}
-      />
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={handleClose} />
+        <div
+          className="relative rounded-3xl overflow-hidden shadow-2xl"
+          style={{ width: 360, height: 560, background: P[50] }}
+        >
+          {/* X button */}
+          <button
+            onClick={() => setSelectedMood(null)}
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 12,
+              zIndex: 10,
+              background: "#ffffff",
+              border: `1px solid ${P[200]}`,
+              borderRadius: "50%",
+              width: 28,
+              height: 28,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              fontSize: 13,
+              color: P[600],
+              fontWeight: 700,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+            }}
+          >
+            ✕
+          </button>
+
+          <MoodCircles
+            userId={userId}
+            userDisplayName={userDisplayName}
+            initialMood={selectedMood}
+          />
+        </div>
+      </div>
     );
   }
 
+  // Mood picker box
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+        onClick={handleClose}
+      />
 
-      
-      <div className="absolute inset-0 bg-[#f6fbf8]" />
-
-      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-[#4f9f75] opacity-20 blur-[140px] rounded-full" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#7bbf9a] opacity-20 blur-[140px] rounded-full" />
-
-      
-      <div className="absolute inset-0 bg-white/30 backdrop-blur-md" />
-
-      
-      <div className="relative w-[360px] rounded-3xl border border-[#d6ebe0] bg-white/70 backdrop-blur-2xl shadow-2xl p-6 text-center">
-
-        
+      {/* Floating box */}
+      <div
+        className="relative rounded-3xl shadow-2xl"
+        style={{
+          width: 320,
+          background: "#ffffff",
+          border: `1px solid ${P[200]}`,
+          padding: "24px 20px 20px",
+        }}
+      >
+        {/* X button */}
         <button
           onClick={handleClose}
-          className="absolute top-3 right-4 text-[#7bbf9a] hover:text-[#2f6e4f] text-xl transition"
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 14,
+            background: P[50],
+            border: `1px solid ${P[200]}`,
+            borderRadius: "50%",
+            width: 28,
+            height: 28,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            fontSize: 13,
+            color: P[600],
+            fontWeight: 700,
+            lineHeight: 1,
+          }}
         >
           ✕
         </button>
 
-      
-        <h2 className="text-xl font-extrabold text-[#2f6e4f] mb-1">
+        {/* Title */}
+        <h2
+          style={{
+            fontSize: 18,
+            fontWeight: 800,
+            color: P[700],
+            marginBottom: 4,
+            marginTop: 0,
+          }}
+        >
           Pick your mood 🎭
         </h2>
-
-        <p className="text-sm text-[#4f9f75] mb-5">
+        <p style={{ fontSize: 13, color: P[500], marginBottom: 16, marginTop: 0 }}>
           Join people sharing the same vibe
         </p>
 
-        
-        <div className="grid grid-cols-2 gap-3">
+        {/* Mood grid */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 10,
+          }}
+        >
           {Object.entries(MOODS).map(([key, mood]) => (
             <button
               key={key}
               onClick={() => handleMoodSelect(key as MoodType)}
-              className="rounded-2xl p-4 text-white font-semibold flex flex-col items-center gap-1 shadow-lg transition hover:scale-[1.05]"
               style={{
                 background: mood.color,
-                boxShadow: "0 12px 30px rgba(79,159,117,0.25)",
+                color: "white",
+                border: "none",
+                borderRadius: 16,
+                padding: "14px 10px",
+                cursor: "pointer",
+                fontWeight: 700,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 4,
+                fontSize: 13,
+                boxShadow: "0 4px 14px rgba(0,0,0,0.10)",
+                transition: "transform 0.15s ease",
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
             >
-              <span className="text-2xl">{mood.emoji}</span>
-              <span className="text-sm">{mood.label}</span>
+              <span style={{ fontSize: 22 }}>{mood.emoji}</span>
+              {mood.label}
             </button>
           ))}
         </div>
