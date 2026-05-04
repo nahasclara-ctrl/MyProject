@@ -1,4 +1,4 @@
-import { ID, Query } from "appwrite";
+import { ID, Query,Permission,  Role } from "appwrite";
 import type { INewPost, INewUser, IUpdatePost } from "@/types";
 import { appwriteConfig, account, databases, storage, avatars } from "./config";
 
@@ -198,21 +198,15 @@ export async function deleteFile(fileId: string) {
 export async function createPost(post: INewPost) {
   if (!post.file || post.file.length === 0) throw new Error("No file provided");
 
-  
-  const uploaded = await uploadFile(post.file[0]); 
+  const uploaded = await uploadFile(post.file[0]);
   if (!uploaded) throw new Error("File upload failed");
 
-  
-  const fileUrl = storage.getFileView(
-    appwriteConfig.storageId,
-    uploaded.$id
-  ).toString();
+  const fileUrl = storage.getFileView(appwriteConfig.storageId, uploaded.$id).toString();
   if (!fileUrl) {
     await deleteFile(uploaded.$id);
     throw new Error("Failed to get file preview");
   }
 
- 
   const newPostDoc = await databases.createDocument(
     appwriteConfig.databaseId,
     appwriteConfig.postCollectionId,
@@ -224,7 +218,12 @@ export async function createPost(post: INewPost) {
       imageId: uploaded.$id,
       location: post.location || "",
       tags: post.tags || [],
-    }
+    },
+    [
+      Permission.read(Role.any()),
+      Permission.update(Role.user(post.userId)),
+      Permission.delete(Role.user(post.userId)),
+    ]
   );
 
   return newPostDoc;
